@@ -39,11 +39,13 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         nn.init.normal_(self.conv_box.weight, mean=0, std=0.001)
 
     def forward(self, data_dict):
+        print("------------------------------AnchorHead--------------------------")
         spatial_features_2d = data_dict['spatial_features_2d']
 
         cls_preds = self.conv_cls(spatial_features_2d)
         box_preds = self.conv_box(spatial_features_2d)
-
+        print("cls_preds_size: ",cls_preds.shape,"\n")
+        print("box_preds_size: ",box_preds.shape,"\n")
         cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
         box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
 
@@ -71,5 +73,6 @@ class AnchorHeadSingle(AnchorHeadTemplate):
             data_dict['batch_cls_preds'] = batch_cls_preds
             data_dict['batch_box_preds'] = batch_box_preds
             data_dict['cls_preds_normalized'] = False
-
+        print("data_dict: ", data_dict.keys(),"\n")
+        print("-------------------------------------------------------------------\n")
         return data_dict

@@ -1,0 +1,74 @@
+------------------------BaseBEVBackbone--------------------------
+layer_nums [5, 5]
+num_levels 2
+self.blocks: ModuleList(
+  (0): Sequential(
+    (0): ZeroPad2d(padding=(1, 1, 1, 1), value=0.0)
+    (1): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), bias=False)
+    (2): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (3): ReLU()
+    (4): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (5): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (6): ReLU()
+    (7): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (8): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (9): ReLU()
+    (10): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (11): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (14): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (15): ReLU()
+    (16): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (17): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (18): ReLU()
+  )
+  (1): Sequential(
+    (0): ZeroPad2d(padding=(1, 1, 1, 1), value=0.0)
+    (1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), bias=False)
+    (2): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (3): ReLU()
+    (4): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (5): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (6): ReLU()
+    (7): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (8): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (9): ReLU()
+    (10): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (11): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (14): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (15): ReLU()
+    (16): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (17): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (18): ReLU()
+  )
+)
+self.deblocks: ModuleList(
+  (0): Sequential(
+    (0): ConvTranspose2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+    (1): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (2): ReLU()
+  )
+  (1): Sequential(
+    (0): ConvTranspose2d(256, 256, kernel_size=(2, 2), stride=(2, 2), bias=False)
+    (1): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+    (2): ReLU()
+  )
+)
+self.anchor_sizes: [[[3.9, 1.6, 1.56]], [[0.8, 0.6, 1.73]], [[1.76, 0.6, 1.73]]]
+self.anchor_rotations: [[0, 1.57], [0, 1.57], [0, 1.57]]
+self.anchor_heights: [[-1.78], [-0.6], [-0.6]]
+------------------------AnchorHead--------------------------
+self.conv_cls: Conv2d(512, 6, kernel_size=(1, 1), stride=(1, 1))
+self.conv_box: Conv2d(512, 42, kernel_size=(1, 1), stride=(1, 1))
+self.conv_dir_cls: Conv2d(512, 12, kernel_size=(1, 1), stride=(1, 1))
+self.generate_predicted_boxes: <bound method AnchorHeadTemplate.generate_predicted_boxes of AnchorHeadSingle(
+  (cls_loss_func): SigmoidFocalClassificationLoss()
+  (reg_loss_func): WeightedSmoothL1Loss()
+  (dir_loss_func): WeightedCrossEntropyLoss()
+  (conv_cls): Conv2d(512, 6, kernel_size=(1, 1), stride=(1, 1))
+  (conv_box): Conv2d(512, 42, kernel_size=(1, 1), stride=(1, 1))
+  (conv_dir_cls): Conv2d(512, 12, kernel_size=(1, 1), stride=(1, 1))
+)>

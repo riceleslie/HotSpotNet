@@ -1,0 +1,33 @@
+self.anchors_size 3
+batch_dict dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size'])
+
+----------------MeanVFE-------------------
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features'])
+------------------------------------------
+
+-----------------------VoxelBackBone----------------------------
+data_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features'])
+---------------------------------------------------------------
+
+---------------------------HeightCompression-----------------------
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride'])
+-------------------------------------------------------------------
+
+------------------------BEVBackBone--------------------------------
+spatial_features_size:  torch.Size([4, 256, 200, 176]) 
+
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d']) 
+
+spatial_features_2d_size:  torch.Size([4, 512, 200, 176]) 
+
+-------------------------------------------------------------------
+
+------------------------------AnchorHead--------------------------
+cls_preds_size:  torch.Size([4, 18, 200, 176]) 
+
+box_preds_size:  torch.Size([4, 42, 200, 176]) 
+
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d']) 
+
+-------------------------------------------------------------------
+

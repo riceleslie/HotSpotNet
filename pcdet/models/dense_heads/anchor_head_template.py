@@ -29,6 +29,7 @@ class AnchorHeadTemplate(nn.Module):
             anchor_ndim=self.box_coder.code_size
         )
         self.anchors = [x.cuda() for x in anchors]
+        print("self.anchors_size",len(self.anchors))
         self.target_assigner = self.get_target_assigner(anchor_target_cfg)
 
         self.forward_ret_dict = {}
@@ -99,13 +100,16 @@ class AnchorHeadTemplate(nn.Module):
         return targets_dict
 
     def get_cls_layer_loss(self):
+        print("\n########## get_cls_layer_loss ##########\n")
         cls_preds = self.forward_ret_dict['cls_preds']
+        # box_cls_labels: [3*70400==211200]
         box_cls_labels = self.forward_ret_dict['box_cls_labels']
         batch_size = int(cls_preds.shape[0])
         cared = box_cls_labels >= 0  # [N, num_anchors]
         positives = box_cls_labels > 0
         negatives = box_cls_labels == 0
         negative_cls_weights = negatives * 1.0
+        #cls_weights: [1, 211200]
         cls_weights = (negative_cls_weights + 1.0 * positives).float()
         reg_weights = positives.float()
         if self.num_class == 1:
@@ -114,16 +118,23 @@ class AnchorHeadTemplate(nn.Module):
 
         pos_normalizer = positives.sum(1, keepdim=True).float()
         reg_weights /= torch.clamp(pos_normalizer, min=1.0)
+        #cls_weights: [1, 211200]
         cls_weights /= torch.clamp(pos_normalizer, min=1.0)
+        # [1, 211200]
         cls_targets = box_cls_labels * cared.type_as(box_cls_labels)
+        # [1, 211200, 1]
         cls_targets = cls_targets.unsqueeze(dim=-1)
-
+        # [1, 211200]
         cls_targets = cls_targets.squeeze(dim=-1)
+        # [1, 211200, 4]
         one_hot_targets = torch.zeros(
             *list(cls_targets.shape), self.num_class + 1, dtype=cls_preds.dtype, device=cls_targets.device
         )
+        # [1, 211200, 4]
         one_hot_targets.scatter_(-1, cls_targets.unsqueeze(dim=-1).long(), 1.0)
+        # [1, 211200, 3]
         cls_preds = cls_preds.view(batch_size, -1, self.num_class)
+        # [1, 211200, 3]
         one_hot_targets = one_hot_targets[..., 1:]
         cls_loss_src = self.cls_loss_func(cls_preds, one_hot_targets, weights=cls_weights)  # [N, M]
         cls_loss = cls_loss_src.sum() / batch_size
@@ -160,15 +171,23 @@ class AnchorHeadTemplate(nn.Module):
         return dir_cls_targets
 
     def get_box_reg_layer_loss(self):
+        print("\n########## get_box_reg_layer_loss ##########\n")
+        # box_preds: [1, 200, 176, 42]
         box_preds = self.forward_ret_dict['box_preds']
+        # box_dir_cls_preds: [1, 200, 176, 12]
         box_dir_cls_preds = self.forward_ret_dict.get('dir_cls_preds', None)
+        # box_reg_targets: [1, 211200, 7]
         box_reg_targets = self.forward_ret_dict['box_reg_targets']
+        # box_cls_labels: [1, 211200]
         box_cls_labels = self.forward_ret_dict['box_cls_labels']
+        #batch_size: 1
         batch_size = int(box_preds.shape[0])
 
         positives = box_cls_labels > 0
+        #reg_weights: [1, 211200]
         reg_weights = positives.float()
         pos_normalizer = positives.sum(1, keepdim=True).float()
+        #reg_weights: [1, 211200]
         reg_weights /= torch.clamp(pos_normalizer, min=1.0)
 
         if isinstance(self.anchors, list):
@@ -181,6 +200,7 @@ class AnchorHeadTemplate(nn.Module):
         else:
             anchors = self.anchors
         anchors = anchors.view(1, -1, anchors.shape[-1]).repeat(batch_size, 1, 1)
+        #box_preds: [1, 211200, 7] == [1, 42*200*176/7, 7]
         box_preds = box_preds.view(batch_size, -1,
                                    box_preds.shape[-1] // self.num_anchors_per_location if not self.use_multihead else
                                    box_preds.shape[-1])
@@ -190,6 +210,7 @@ class AnchorHeadTemplate(nn.Module):
         loc_loss = loc_loss_src.sum() / batch_size
 
         loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
+        #Reg_Loss
         box_loss = loc_loss
         tb_dict = {
             'rpn_loss_loc': loc_loss.item()
@@ -207,6 +228,7 @@ class AnchorHeadTemplate(nn.Module):
             weights /= torch.clamp(weights.sum(-1, keepdim=True), min=1.0)
             dir_loss = self.dir_loss_func(dir_logits, dir_targets, weights=weights)
             dir_loss = dir_loss.sum() / batch_size
+            #Dir_Loss
             dir_loss = dir_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['dir_weight']
             box_loss += dir_loss
             tb_dict['rpn_loss_dir'] = dir_loss.item()
@@ -245,6 +267,10 @@ class AnchorHeadTemplate(nn.Module):
             anchors = self.anchors
         num_anchors = anchors.view(-1, anchors.shape[-1]).shape[0]
         batch_anchors = anchors.view(1, -1, anchors.shape[-1]).repeat(batch_size, 1, 1)
+        print("anchors.shape[-1]",anchors.shape[-1])
+        print("anchors.view(-1,anchors.shape[-1])",anchors.view(-1,anchors.shape[-1]))
+        print("anchors_num",num_anchors)
+        print("anchors_batch",batch_anchors)
         batch_cls_preds = cls_preds.view(batch_size, num_anchors, -1).float() \
             if not isinstance(cls_preds, list) else cls_preds
         batch_box_preds = box_preds.view(batch_size, num_anchors, -1) if not isinstance(box_preds, list) \

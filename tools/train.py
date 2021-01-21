@@ -121,21 +121,22 @@ def main():
 
     # load checkpoint if it is possible
     start_epoch = it = 0
-    last_epoch = -1
+  #  last_epoch = -1
+    last_epoch = start_epoch + 1
     if args.pretrained_model is not None:
         model.load_params_from_file(filename=args.pretrained_model, to_cpu=dist, logger=logger)
 
-    if args.ckpt is not None:
-        it, start_epoch = model.load_params_with_optimizer(args.ckpt, to_cpu=dist, optimizer=optimizer, logger=logger)
-        last_epoch = start_epoch + 1
-    else:
-        ckpt_list = glob.glob(str(ckpt_dir / '*checkpoint_epoch_*.pth'))
-        if len(ckpt_list) > 0:
-            ckpt_list.sort(key=os.path.getmtime)
-            it, start_epoch = model.load_params_with_optimizer(
-                ckpt_list[-1], to_cpu=dist, optimizer=optimizer, logger=logger
-            )
-            last_epoch = start_epoch + 1
+  #  if args.ckpt is not None:
+  #      it, start_epoch = model.load_params_with_optimizer(args.ckpt, to_cpu=dist, optimizer=optimizer, logger=logger)
+  #      last_epoch = start_epoch + 1
+  #  else:
+  #      ckpt_list = glob.glob(str(ckpt_dir / '*checkpoint_epoch_*.pth'))
+  #      if len(ckpt_list) > 0:
+  #          ckpt_list.sort(key=os.path.getmtime)
+  #          it, start_epoch = model.load_params_with_optimizer(
+  #              ckpt_list[-1], to_cpu=dist, optimizer=optimizer, logger=logger
+  #          )
+  #          last_epoch = start_epoch + 1
 
     model.train()  # before wrap to DistributedDataParallel to support fixed some parameters
     if dist_train:
@@ -150,6 +151,7 @@ def main():
     # -----------------------start training---------------------------
     logger.info('**********************Start training %s/%s(%s)**********************'
                 % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
+    logger.info('start_epoch %d ',start_epoch)
     train_model(
         model,
         optimizer,
@@ -173,25 +175,25 @@ def main():
     logger.info('**********************End training %s/%s(%s)**********************\n\n\n'
                 % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
 
-    logger.info('**********************Start evaluation %s/%s(%s)**********************' %
-                (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-    test_set, test_loader, sampler = build_dataloader(
-        dataset_cfg=cfg.DATA_CONFIG,
-        class_names=cfg.CLASS_NAMES,
-        batch_size=args.batch_size,
-        dist=dist_train, workers=args.workers, logger=logger, training=False
-    )
-    eval_output_dir = output_dir / 'eval' / 'eval_with_train'
-    eval_output_dir.mkdir(parents=True, exist_ok=True)
-    args.start_epoch = max(args.epochs - 10, 0)  # Only evaluate the last 10 epochs
-
-    repeat_eval_ckpt(
-        model.module if dist_train else model,
-        test_loader, args, eval_output_dir, logger, ckpt_dir,
-        dist_test=dist_train
-    )
-    logger.info('**********************End evaluation %s/%s(%s)**********************' %
-                (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
+#    logger.info('**********************Start evaluation %s/%s(%s)**********************' %
+#                (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
+#    test_set, test_loader, sampler = build_dataloader(
+#        dataset_cfg=cfg.DATA_CONFIG,
+#        class_names=cfg.CLASS_NAMES,
+#        batch_size=args.batch_size,
+#        dist=dist_train, workers=args.workers, logger=logger, training=False
+#    )
+#    eval_output_dir = output_dir / 'eval' / 'eval_with_train'
+#    eval_output_dir.mkdir(parents=True, exist_ok=True)
+#    args.start_epoch = max(args.epochs - 10, 0)  # Only evaluate the last 10 epochs
+#
+#    repeat_eval_ckpt(
+#        model.module if dist_train else model,
+#        test_loader, args, eval_output_dir, logger, ckpt_dir,
+#        dist_test=dist_train
+#    )
+#    logger.info('**********************End evaluation %s/%s(%s)**********************' %
+#                (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
 
 
 if __name__ == '__main__':
