@@ -165,7 +165,6 @@ class KittiDataset(DatasetTemplate):
                 loc_lidar[:, 2] += h[:, 0] / 2
                 gt_boxes_lidar = np.concatenate([loc_lidar, l, w, h, -(np.pi / 2 + rots[..., np.newaxis])], axis=1)
                 annotations['gt_boxes_lidar'] = gt_boxes_lidar
-
                 info['annos'] = annotations
 
                 if count_inside_pts:

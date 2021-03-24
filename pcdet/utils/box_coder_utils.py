@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+import pdb
 
 class ResidualCoder(object):
     def __init__(self, code_size=7, encode_angle_by_sincos=False, **kwargs):
@@ -220,3 +220,40 @@ class PointResidualCoder(object):
 
         cgs = [t for t in cts]
         return torch.cat([xg, yg, zg, dxg, dyg, dzg, rg, *cgs], dim=-1)
+
+class HOSResidualCoder(object):
+    def __init__(self, code_size=8, use_mean_size=True, **kwargs):
+        super().__init__()
+        self.code_size = code_size
+        self.use_mean_size = use_mean_size
+        if self.use_mean_size:
+            self.mean_size = torch.from_numpy(np.array(kwargs['mean_size'])).cuda().float()
+            assert self.mean_size.min() > 0
+
+    def encode_torch(self, gt_box, hotspots):
+        """
+        Args:
+            gt_box: (1, 7 + C) [x, y, z, dx, dy, dz, heading, ...]
+            hotspots: (N, 3) [x, y, z]
+        Returns:
+            box_coding: (N, 8 + C)
+        """
+        hos_box_labels = gt_box.new_zeros(hotspots.shape[0], self.code_size)
+        gt_box[3:6] = torch.clamp_min(gt_box[3:6], min=1e-5)
+
+        xg, yg, zg, dxg, dyg, dzg, rg, *cgs = torch.split(gt_box, 1, dim=-1)
+        xa, ya, za = torch.split(hotspots[:,0:3], 1, dim=-1)
+
+        xt = (xg - xa)
+        yt = (yg - ya)
+        zt = (zg - za)
+        dxt = torch.log(dxg)
+        dyt = torch.log(dyg)
+        dzt = torch.log(dzg)
+        crt = torch.cos(rg)
+        srt = torch.sin(rg)
+
+        hos_box_labels[:,0:3] = torch.cat([xt, yt, zt], dim=-1)
+        hos_box_labels[:,3:8] = torch.cat([dxt, dyt, dzt, crt, srt], dim=-1)
+        
+        return hos_box_labels

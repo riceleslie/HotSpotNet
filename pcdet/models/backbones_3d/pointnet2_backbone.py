@@ -65,6 +65,8 @@ class PointNet2MSG(nn.Module):
                 encoded_spconv_tensor: sparse tensor
                 point_features: (N, C)
         """
+        print("batch_dict: \n", batch_dict.keys(), '\n') 
+        print("\n------------------------------MSG------------------------------")
         batch_size = batch_dict['batch_size']
         points = batch_dict['points']
         batch_idx, xyz, features = self.break_up_pc(points)
@@ -91,6 +93,8 @@ class PointNet2MSG(nn.Module):
         point_features = l_features[0].permute(0, 2, 1).contiguous()  # (B, N, C)
         batch_dict['point_features'] = point_features.view(-1, point_features.shape[-1])
         batch_dict['point_coords'] = torch.cat((batch_idx[:, None].float(), l_xyz[0].view(-1, 3)), dim=1)
+        print("batch_dict: \n", batch_dict.keys(), '\n') 
+        print("\n---------------------------------------------------------------\n")
         return batch_dict
 
 

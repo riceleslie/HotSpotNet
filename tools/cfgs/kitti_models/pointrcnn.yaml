@@ -119,7 +119,7 @@ MODEL:
             LOSS_WEIGHTS: {
                 'rcnn_cls_weight': 1.0,
                 'rcnn_reg_weight': 1.0,
-                'rcnn_corner_weight': 1.0,
+                'rcnn_spa_weight': 1.0,
                 'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
             }
 

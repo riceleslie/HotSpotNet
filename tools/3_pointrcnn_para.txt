@@ -1,0 +1,37 @@
+batch_dict dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'image_shape', 'batch_size'])
+batch_dict: 
+ dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'image_shape', 'batch_size']) 
+
+
+------------------------------MSG------------------------------
+batch_dict: 
+ dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'image_shape', 'batch_size', 'point_features', 'point_coords']) 
+
+
+---------------------------------------------------------------
+
+
+------------------------------Head-----------------------------
+point_cls_preds:  torch.Size([32768, 3]) 
+
+point_box_preds:  torch.Size([32768, 8]) 
+
+
+
+batch_dict: 
+ dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'image_shape', 'batch_size', 'point_features', 'point_coords', 'point_cls_scores', 'batch_cls_preds', 'batch_box_preds', 'batch_index', 'cls_preds_normalized']) 
+
+
+
+---------------------------------Proposal Layer--------------------------------
+batch_box_preds:  torch.Size([32768, 7]) 
+
+batch_cls_preds:  torch.Size([32768, 3]) 
+point_cls_labels:  torch.Size([32768]) 
+point_box_labels:  torch.Size([32768]) 
+positives:  torch.Size([32768]) 
+
+negative_cls_weights:  torch.Size([32768]) 
+
+cls_weights:  torch.Size([32768]) 
+

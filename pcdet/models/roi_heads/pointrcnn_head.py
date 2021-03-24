@@ -6,6 +6,8 @@ from ...ops.roipoint_pool3d import roipoint_pool3d_utils
 from ...utils import common_utils
 from .roi_head_template import RoIHeadTemplate
 
+import pdb
+
 
 class PointRCNNHead(RoIHeadTemplate):
     def __init__(self, input_channels, model_cfg, num_class=1):
@@ -127,6 +129,7 @@ class PointRCNNHead(RoIHeadTemplate):
                 pooled_features[:, :, 0:3], -rois.view(-1, rois.shape[-1])[:, 6]
             )
             pooled_features[pooled_empty_flag.view(-1) > 0] = 0
+        pdb.set_trace()
         return pooled_features
 
     def forward(self, batch_dict):

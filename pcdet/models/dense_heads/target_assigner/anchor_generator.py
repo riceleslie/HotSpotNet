@@ -1,5 +1,5 @@
 import torch
-
+import pdb
 
 class AnchorGenerator(object):
     def __init__(self, anchor_range, anchor_generator_config):
@@ -20,7 +20,6 @@ class AnchorGenerator(object):
         num_anchors_per_location = []
         for grid_size, anchor_size, anchor_rotation, anchor_height, align_center in zip(
                 grid_sizes, self.anchor_sizes, self.anchor_rotations, self.anchor_heights, self.align_center):
-
             num_anchors_per_location.append(len(anchor_rotation) * len(anchor_size) * len(anchor_height))
             if align_center:
                 x_stride = (self.anchor_range[3] - self.anchor_range[0]) / grid_size[0]
@@ -46,12 +45,12 @@ class AnchorGenerator(object):
                 x_shifts, y_shifts, z_shifts
             ])  # [x_grid, y_grid, z_grid]
             anchors = torch.stack((x_shifts, y_shifts, z_shifts), dim=-1)  # [x, y, z, 3]
-            anchors = anchors[:, :, :, None, :].repeat(1, 1, 1, anchor_size.shape[0], 1)
-            anchor_size = anchor_size.view(1, 1, 1, -1, 3).repeat([*anchors.shape[0:3], 1, 1])
-            anchors = torch.cat((anchors, anchor_size), dim=-1)
-            anchors = anchors[:, :, :, :, None, :].repeat(1, 1, 1, 1, num_anchor_rotation, 1)
-            anchor_rotation = anchor_rotation.view(1, 1, 1, 1, -1, 1).repeat([*anchors.shape[0:3], num_anchor_size, 1, 1])
-            anchors = torch.cat((anchors, anchor_rotation), dim=-1)  # [x, y, z, num_size, num_rot, 7]
+            anchors = anchors[:, :, :, None, :].repeat(1, 1, 1, anchor_size.shape[0], 1) #[176,200,1,1,3]  3:x,y,z
+            anchor_size = anchor_size.view(1, 1, 1, -1, 3).repeat([*anchors.shape[0:3], 1, 1]) #[176,200,1,1,3] 3: [3.9000, 1.6000, 1.5600]
+            anchors = torch.cat((anchors, anchor_size), dim=-1) #[176, 200, 1, 1, 6] 6: x,y,z,3.9,1.6,1.56
+            anchors = anchors[:, :, :, :, None, :].repeat(1, 1, 1, 1, num_anchor_rotation, 1) #[176, 200, 1, 1, 2, 6]
+            anchor_rotation = anchor_rotation.view(1, 1, 1, 1, -1, 1).repeat([*anchors.shape[0:3], num_anchor_size, 1, 1]) #[176, 200, 1, 1, 2, 1]
+            anchors = torch.cat((anchors, anchor_rotation), dim=-1)  # [x, y, z, num_size, num_rot, 7] [176, 200, 1, 1, 2, 7]
 
             anchors = anchors.permute(2, 1, 0, 3, 4, 5).contiguous()
             #anchors = anchors.view(-1, anchors.shape[-1])

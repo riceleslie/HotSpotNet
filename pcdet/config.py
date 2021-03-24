@@ -2,6 +2,7 @@ from pathlib import Path
 
 import yaml
 from easydict import EasyDict
+import pdb
 
 
 def log_config_to_file(cfg, pre='cfg', logger=None):
@@ -75,6 +76,7 @@ def cfg_from_yaml_file(cfg_file, config):
         except:
             new_config = yaml.load(f)
 
+        pdb.set_trace()
         merge_new_config(config=config, new_config=new_config)
 
     return config

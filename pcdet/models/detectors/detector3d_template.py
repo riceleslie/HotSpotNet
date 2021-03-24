@@ -4,12 +4,14 @@ import torch
 import torch.nn as nn
 
 from ...ops.iou3d_nms import iou3d_nms_utils
-from .. import backbones_2d, backbones_3d, dense_heads, roi_heads
 from ..backbones_2d import map_to_bev
 from ..backbones_3d import pfe, vfe
 from ..model_utils import model_nms_utils
-
-
+#from .. import backbones_2d, backbones_3d, dense_heads, roi_heads
+from .. import backbones_3d
+from .. import backbones_2d
+from .. import roi_heads
+from .. import dense_heads
 class Detector3DTemplate(nn.Module):
     def __init__(self, model_cfg, num_class, dataset):
         super().__init__()
@@ -126,6 +128,8 @@ class Detector3DTemplate(nn.Module):
             class_names=self.class_names,
             grid_size=model_info_dict['grid_size'],
             point_cloud_range=model_info_dict['point_cloud_range'],
+            #hotspots needs
+            voxel_size=model_info_dict['voxel_size'],
             predict_boxes_when_training=self.model_cfg.get('ROI_HEAD', False)
         )
         model_info_dict['module_list'].append(dense_head_module)

@@ -1,0 +1,95 @@
+self.anchors_size 3
+batch_dict dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size'])
+
+----------------MeanVFE-------------------
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features'])
+------------------------------------------
+
+-----------------------VoxelBackBone----------------------------
+voxel_features:  torch.Size([16000, 4]) 
+
+voxel_coords:  torch.Size([16000, 4]) 
+
+data_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features'])
+---------------------------------------------------------------
+
+---------------------------HeightCompression-----------------------
+batch_dict['encoded_spconv_tensor']:  torch.Size([1, 128, 2, 200, 176]) 
+
+batch_dict['spatial_features']:  torch.Size([1, 256, 200, 176]) 
+
+batch_dict['spatial_features_stride']:  8 
+
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride'])
+-------------------------------------------------------------------
+
+------------------------BEVBackBone--------------------------------
+spatial_features_size:  torch.Size([1, 256, 200, 176]) 
+
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d']) 
+
+spatial_features_2d_size:  torch.Size([1, 512, 200, 176]) 
+
+-------------------------------------------------------------------
+
+------------------------------AnchorHead--------------------------
+cls_preds_size:  torch.Size([1, 18, 200, 176]) 
+
+box_preds_size:  torch.Size([1, 42, 200, 176]) 
+
+
+########## assign taget
+gt_boxes_with_classes_shape:  torch.Size([1, 29, 8]) 
+
+gt_classes_shape:  torch.Size([1, 29]) 
+
+gt_boxes_shape:  torch.Size([1, 29, 7]) 
+
+cur_gt_shape:  torch.Size([29, 7]) 
+
+cnt:  28 
+
+cur_gt_classes_shape:  torch.Size([29]) 
+
+anchor_class_name:  Car
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([ True,  True,  True,  True,  True,  True,  True, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([1, 1, 1, 1, 1, 1, 1], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 7]) 
+
+anchor_class_name:  Pedestrian
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True, False, False,
+        False, False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 11]) 
+
+anchor_class_name:  Cyclist
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True,  True],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 11]) 
+
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'multi_scale_3d_features', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d']) 
+
+> /data2/mtang/project/OpenPCDet/pcdet/models/dense_heads/anchor_head_single.py(83)forward()
+-> print("-------------------------------------------------------------------\n")
+(Pdb) (Pdb) (Pdb) (Pdb) *** NameError: name 'hh' is not defined
+(Pdb) 

@@ -5,6 +5,95 @@ import torch.nn.functional as F
 
 from . import box_utils
 
+import pdb
+class HOSBCELoss(nn.Module):
+    """
+    Transform input to fit the fomation of PyTorch offical cross entropy loss
+    with anchor-wise weighting.
+    """
+    def __init__(self):
+        super(HOSBCELoss, self).__init__()
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor):
+        """
+        Args:
+            input: (B, #anchors, #classes) float tensor.
+                Predited logits for each class.
+            target: (B, #anchors, #classes) float tensor.
+                One-hot classification targets.
+            weights: (B, #anchors) float tensor.
+                Anchor-wise weights.
+
+        Returns:
+            loss: (B, #anchors) float tensor.
+                Weighted cross entropy loss without reduction
+        """
+        # accumulate then divide by 4 and num of taget
+        loss = F.binary_cross_entropy(input, target)
+        
+        return loss
+
+class HOSSmoothL1Loss(nn.Module):
+    def __init__(self, beta: float = 1.0, code_weights: list = None):
+        super(HOSSmoothL1Loss, self).__init__()
+        self.beta = beta
+        if code_weights is not None:
+            self.code_weights = np.array(code_weights, dtype=np.float32)
+            self.code_weights = torch.from_numpy(self.code_weights).cuda()
+
+    @staticmethod
+    def smooth_l1_loss(diff, beta):
+        if beta < 1e-5:
+            loss = torch.abs(diff)
+        else:
+            n = torch.abs(diff)
+            loss = torch.where(n < beta, 0.5 * n ** 2 / beta, n - 0.5 * beta)
+
+        return loss
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor = None):
+
+        diff = input - target
+        # code-wise weighting
+        #if self.code_weights is not None:
+         #   diff = diff * self.code_weights.view(1, 1, -1)
+        self.code_weights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+        loss = self.smooth_l1_loss(diff, self.beta)
+        
+        if weights is not None:
+            assert weights.shape[0] == loss.shape[0] and weights.shape[1] == loss.shape[1]
+            loss = loss * weights
+
+        return loss
+
+class BinaryFocalClassificationLoss(nn.Module):
+
+    def __init__(self, gamma: float = 2.0, alpha: float = 0.25):
+        super(BinaryFocalClassificationLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+
+    @staticmethod
+    def sigmoid_cross_entropy_with_logits(input: torch.Tensor, target: torch.Tensor):
+        loss = torch.clamp(input, min=0) - input * target + \
+               torch.log1p(torch.exp(-torch.abs(input)))
+        return loss
+
+    def forward(self, input: torch.Tensor, heatmap: torch.Tensor, weights: torch.Tensor):
+        pred_sigmoid = torch.sigmoid(input)
+        target = heatmap
+        alpha_weight = target * self.alpha + (1 - target) * (1 - self.alpha)
+        pt = target * (1.0 - pred_sigmoid) + (1.0 - target) * pred_sigmoid
+        focal_weight = alpha_weight * torch.pow(pt, self.gamma)
+
+        bce_loss = self.sigmoid_cross_entropy_with_logits(input, target)
+
+        loss = focal_weight * bce_loss
+        
+        assert weights.shape.__len__() == loss.shape.__len__()
+        
+        return loss * weights
 
 class SigmoidFocalClassificationLoss(nn.Module):
     """
@@ -42,18 +131,7 @@ class SigmoidFocalClassificationLoss(nn.Module):
         return loss
 
     def forward(self, input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor):
-        """
-        Args:
-            input: (B, #anchors, #classes) float tensor.
-                Predicted logits for each class
-            target: (B, #anchors, #classes) float tensor.
-                One-hot encoded classification targets
-            weights: (B, #anchors) float tensor.
-                Anchor-wise weights.
-
-        Returns:
-            weighted_loss: (B, #anchors, #classes) float tensor after weighting.
-        """
+        
         pred_sigmoid = torch.sigmoid(input)
         alpha_weight = target * self.alpha + (1 - target) * (1 - self.alpha)
         pt = target * (1.0 - pred_sigmoid) + (1.0 - target) * pred_sigmoid

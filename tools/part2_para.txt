@@ -1,0 +1,486 @@
+self.anchors_size 3
+batch_dict dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size'])
+
+----------------MeanVFE-------------------
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features'])
+------------------------------------------
+
+-------------------------------------UNET---------------------------------------
+voxel_coords:  torch.Size([64000, 4]) 
+
+voxel_features:  torch.Size([64000, 4]) 
+
+batch_dict:
+ dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'point_features', 'point_coords']) 
+
+point_features:  torch.Size([64000, 16]) 
+
+point_coords:  torch.Size([64000, 4]) 
+
+--------------------------------------------------------------------------------
+
+---------------------------HeightCompression-----------------------
+batch_dict['encoded_spconv_tensor']:  torch.Size([4, 128, 2, 200, 176]) 
+
+batch_dict['spatial_features']:  torch.Size([4, 256, 200, 176]) 
+
+batch_dict['spatial_features_stride']:  8 
+
+batch_dict: dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'point_features', 'point_coords', 'spatial_features', 'spatial_features_stride'])
+-------------------------------------------------------------------
+
+------------------------BEVBackBone--------------------------------
+spatial_features_size:  torch.Size([4, 256, 200, 176]) 
+
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'point_features', 'point_coords', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d']) 
+
+spatial_features_2d_size:  torch.Size([4, 512, 200, 176]) 
+
+-------------------------------------------------------------------
+
+------------------------------AnchorHead--------------------------
+cls_preds_size:  torch.Size([4, 18, 200, 176]) 
+
+box_preds_size:  torch.Size([4, 42, 200, 176]) 
+
+
+########## assign taget
+gt_boxes_with_classes_shape:  torch.Size([4, 41, 8]) 
+
+gt_classes_shape:  torch.Size([4, 41]) 
+
+gt_boxes_shape:  torch.Size([4, 41, 7]) 
+
+cur_gt_shape:  torch.Size([41, 7]) 
+
+cnt:  40 
+
+cur_gt_classes_shape:  torch.Size([38]) 
+
+anchor_class_name:  Car
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([ True,  True,  True,  True,  True,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 15]) 
+
+anchor_class_name:  Pedestrian
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True, False, False, False, False, False,
+        False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([2, 2, 2, 2, 2, 2, 2, 2, 2, 2], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 10]) 
+
+anchor_class_name:  Cyclist
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 13]) 
+
+cur_gt_shape:  torch.Size([41, 7]) 
+
+cnt:  40 
+
+cur_gt_classes_shape:  torch.Size([35]) 
+
+anchor_class_name:  Car
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([ True,  True,  True,  True, False,  True,  True,  True,  True,  True,
+         True,  True,  True, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False], dtype=torch.bool) 
+
+selected_classes:  tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 12]) 
+
+anchor_class_name:  Pedestrian
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False,  True,  True,  True,  True,  True,  True,  True,
+         True,  True,  True,  True, False, False, False, False, False, False,
+        False, False, False, False, False], dtype=torch.bool) 
+
+selected_classes:  tensor([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 11]) 
+
+anchor_class_name:  Cyclist
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False,  True, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False,  True,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True], dtype=torch.bool) 
+
+selected_classes:  tensor([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 12]) 
+
+cur_gt_shape:  torch.Size([41, 7]) 
+
+cnt:  40 
+
+cur_gt_classes_shape:  torch.Size([38]) 
+
+anchor_class_name:  Car
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([ True,  True,  True,  True,  True,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 15]) 
+
+anchor_class_name:  Pedestrian
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True, False, False,
+        False, False, False, False, False, False, False, False],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 13]) 
+
+anchor_class_name:  Cyclist
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True],
+       dtype=torch.bool) 
+
+selected_classes:  tensor([3, 3, 3, 3, 3, 3, 3, 3, 3, 3], device='cuda:0', dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 10]) 
+
+cur_gt_shape:  torch.Size([41, 7]) 
+
+cnt:  40 
+
+cur_gt_classes_shape:  torch.Size([41]) 
+
+anchor_class_name:  Car
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False,  True,  True,  True,  True,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False], dtype=torch.bool) 
+
+selected_classes:  tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 14]) 
+
+anchor_class_name:  Pedestrian
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([ True, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False,  True,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False], dtype=torch.bool) 
+
+selected_classes:  tensor([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 12]) 
+
+anchor_class_name:  Cyclist
+anchors:  torch.Size([1, 200, 176, 1, 2, 7]) 
+
+mask:  tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True,  True,  True,  True,
+         True], dtype=torch.bool) 
+
+selected_classes:  tensor([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], device='cuda:0',
+       dtype=torch.int32) 
+
+anchor_by_gt_overlap:  torch.Size([70400, 15]) 
+
+generate_predicted_boxes
+
+anchors.shape[-1] 7
+anchors.view(-1,anchors.shape[-1]) tensor([[  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   0.0000],
+        [  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   1.5700],
+        [  0.0000, -40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+        ...,
+        [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700],
+        [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+        [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700]],
+       device='cuda:0')
+anchors_num 211200
+anchors_batch tensor([[[  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   0.0000],
+         [  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   1.5700],
+         [  0.0000, -40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         ...,
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700]],
+
+        [[  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   0.0000],
+         [  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   1.5700],
+         [  0.0000, -40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         ...,
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700]],
+
+        [[  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   0.0000],
+         [  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   1.5700],
+         [  0.0000, -40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         ...,
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700]],
+
+        [[  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   0.0000],
+         [  0.0000, -40.0000,  -1.0000,  ...,   1.6000,   1.5600,   1.5700],
+         [  0.0000, -40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         ...,
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   0.0000],
+         [ 70.4000,  40.0000,  -0.9150,  ...,   0.6000,   1.7300,   1.5700]]],
+       device='cuda:0')
+data_dict:  dict_keys(['points', 'frame_id', 'gt_boxes', 'use_lead_xyz', 'voxels', 'voxel_coords', 'voxel_num_points', 'image_shape', 'batch_size', 'voxel_features', 'encoded_spconv_tensor', 'encoded_spconv_tensor_stride', 'point_features', 'point_coords', 'spatial_features', 'spatial_features_stride', 'spatial_features_2d', 'batch_cls_preds', 'batch_box_preds', 'cls_preds_normalized']) 
+
+-------------------------------------------------------------------
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+####################points_in_boxes_gpu
+points:  torch.Size([1, 16000, 3]) 
+
+boxes:  torch.Size([1, 41, 7])
+#######################################
+
+
+
+---------------------------------Proposal Layer--------------------------------
+batch_box_preds:  torch.Size([4, 211200, 7]) 
+
+batch_cls_preds:  torch.Size([4, 211200, 3]) 
+
+rois:  torch.Size([4, 512, 7]) 
+
+rois_scores:  torch.Size([4, 512]) 
+
+rois_labels:  torch.Size([4, 512]) 
+
+box_preds:  torch.Size([211200, 7]) 
+
+cls_preds:  torch.Size([211200, 3]) 
+
+box_preds[0:5,:]:  tensor([[ 1.1935e-01, -3.9919e+01, -9.9809e-01,  3.9614e+00,  1.5792e+00,
+          1.5409e+00,  6.2611e+00],
+        [-1.0752e-01, -3.9861e+01, -9.6111e-01,  3.8896e+00,  1.6333e+00,
+          1.6252e+00,  1.6008e+00],
+        [ 3.9855e-02, -4.0042e+01, -9.6296e-01,  7.6471e-01,  6.1811e-01,
+          1.6625e+00,  3.1662e+00],
+        [-3.7736e-02, -3.9971e+01, -9.2401e-01,  7.8551e-01,  5.8353e-01,
+          1.7670e+00,  1.5939e+00],
+        [-7.2792e-02, -4.0045e+01, -8.8724e-01,  1.7319e+00,  5.8710e-01,
+          1.6764e+00,  3.1753e+00]], device='cuda:0', requires_grad=True) 
+
+cls_preds[0:5,:]:  tensor([[-4.5505, -4.5821, -4.5218],
+        [-4.5459, -4.6315, -4.6728],
+        [-4.5087, -4.6300, -4.6541],
+        [-4.5527, -4.5935, -4.5003],
+        [-4.6195, -4.5709, -4.5736]], device='cuda:0', requires_grad=True) 
+
+cur_roi_scores:  torch.Size([211200]) 
+
+cur_roi_labels:  torch.Size([211200]) 
+
+cur_roi_scores[0:5]:  tensor([-4.5218, -4.5459, -4.5087, -4.5003, -4.5709], device='cuda:0') 
+
+cur_roi_labels[0:5]:  tensor([2, 0, 0, 2, 1], device='cuda:0') 
+
+selected box num:  512 
+
+box_preds:  torch.Size([211200, 7]) 
+
+cls_preds:  torch.Size([211200, 3]) 
+
+box_preds[0:5,:]:  tensor([[ 1.1935e-01, -3.9919e+01, -9.9809e-01,  3.9614e+00,  1.5792e+00,
+          1.5409e+00,  6.2611e+00],
+        [-1.0752e-01, -3.9861e+01, -9.6111e-01,  3.8896e+00,  1.6333e+00,
+          1.6252e+00,  1.6008e+00],
+        [ 3.9855e-02, -4.0042e+01, -9.6296e-01,  7.6471e-01,  6.1811e-01,
+          1.6625e+00,  3.1662e+00],
+        [-3.7736e-02, -3.9971e+01, -9.2401e-01,  7.8551e-01,  5.8353e-01,
+          1.7670e+00,  1.5939e+00],
+        [-7.2792e-02, -4.0045e+01, -8.8724e-01,  1.7319e+00,  5.8710e-01,
+          1.6764e+00,  3.1753e+00]], device='cuda:0', requires_grad=True) 
+
+cls_preds[0:5,:]:  tensor([[-4.5505, -4.5821, -4.5218],
+        [-4.5459, -4.6315, -4.6728],
+        [-4.5087, -4.6300, -4.6541],
+        [-4.5527, -4.5935, -4.5003],
+        [-4.6195, -4.5709, -4.5736]], device='cuda:0', requires_grad=True) 
+
+cur_roi_scores:  torch.Size([211200]) 
+
+cur_roi_labels:  torch.Size([211200]) 
+
+cur_roi_scores[0:5]:  tensor([-4.5218, -4.5459, -4.5087, -4.5003, -4.5709], device='cuda:0') 
+
+cur_roi_labels[0:5]:  tensor([2, 0, 0, 2, 1], device='cuda:0') 
+
+selected box num:  512 
+
+box_preds:  torch.Size([211200, 7]) 
+
+cls_preds:  torch.Size([211200, 3]) 
+
+box_preds[0:5,:]:  tensor([[ 1.1935e-01, -3.9919e+01, -9.9809e-01,  3.9614e+00,  1.5792e+00,
+          1.5409e+00,  6.2611e+00],
+        [-1.0752e-01, -3.9861e+01, -9.6111e-01,  3.8896e+00,  1.6333e+00,
+          1.6252e+00,  1.6008e+00],
+        [ 3.9855e-02, -4.0042e+01, -9.6296e-01,  7.6471e-01,  6.1811e-01,
+          1.6625e+00,  3.1662e+00],
+        [-3.7736e-02, -3.9971e+01, -9.2401e-01,  7.8551e-01,  5.8353e-01,
+          1.7670e+00,  1.5939e+00],
+        [-7.2792e-02, -4.0045e+01, -8.8724e-01,  1.7319e+00,  5.8710e-01,
+          1.6764e+00,  3.1753e+00]], device='cuda:0', requires_grad=True) 
+
+cls_preds[0:5,:]:  tensor([[-4.5505, -4.5821, -4.5218],
+        [-4.5459, -4.6315, -4.6728],
+        [-4.5087, -4.6300, -4.6541],
+        [-4.5527, -4.5935, -4.5003],
+        [-4.6195, -4.5709, -4.5736]], device='cuda:0', requires_grad=True) 
+
+cur_roi_scores:  torch.Size([211200]) 
+
+cur_roi_labels:  torch.Size([211200]) 
+
+cur_roi_scores[0:5]:  tensor([-4.5218, -4.5459, -4.5087, -4.5003, -4.5709], device='cuda:0') 
+
+cur_roi_labels[0:5]:  tensor([2, 0, 0, 2, 1], device='cuda:0') 
+
+selected box num:  512 
+
+box_preds:  torch.Size([211200, 7]) 
+
+cls_preds:  torch.Size([211200, 3]) 
+
+box_preds[0:5,:]:  tensor([[ 1.1935e-01, -3.9919e+01, -9.9809e-01,  3.9614e+00,  1.5792e+00,
+          1.5409e+00,  6.2611e+00],
+        [-1.0752e-01, -3.9861e+01, -9.6111e-01,  3.8896e+00,  1.6333e+00,
+          1.6252e+00,  1.6008e+00],
+        [ 3.9855e-02, -4.0042e+01, -9.6296e-01,  7.6471e-01,  6.1811e-01,
+          1.6625e+00,  3.1662e+00],
+        [-3.7736e-02, -3.9971e+01, -9.2401e-01,  7.8551e-01,  5.8353e-01,
+          1.7670e+00,  1.5939e+00],
+        [-7.2792e-02, -4.0045e+01, -8.8724e-01,  1.7319e+00,  5.8710e-01,
+          1.6764e+00,  3.1753e+00]], device='cuda:0', requires_grad=True) 
+
+cls_preds[0:5,:]:  tensor([[-4.5505, -4.5821, -4.5218],
+        [-4.5459, -4.6315, -4.6728],
+        [-4.5087, -4.6300, -4.6541],
+        [-4.5527, -4.5935, -4.5003],
+        [-4.6195, -4.5709, -4.5736]], device='cuda:0', requires_grad=True) 
+
+cur_roi_scores:  torch.Size([211200]) 
+
+cur_roi_labels:  torch.Size([211200]) 
+
+cur_roi_scores[0:5]:  tensor([-4.5218, -4.5459, -4.5087, -4.5003, -4.5709], device='cuda:0') 
+
+cur_roi_labels[0:5]:  tensor([2, 0, 0, 2, 1], device='cuda:0') 
+
+selected box num:  512 
+
+
+########## get_cls_layer_loss ##########
+
+
+########## get_box_reg_layer_loss ##########
+

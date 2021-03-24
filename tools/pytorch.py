@@ -1,23 +1,16 @@
+import numpy as np
 import argparse
 import datetime
-import glob
 import os
 from pathlib import Path
-from test import repeat_eval_ckpt
-
-import torch
-import torch.distributed as dist
-import torch.nn as nn
-from tensorboardX import SummaryWriter
 
 from pcdet.config import cfg, cfg_from_list, cfg_from_yaml_file, log_config_to_file
+##bug build_network should be in pcdet.models, but it did not work
+#from pcdet.datasets import build_network
+from pcdet.models import build_network
 from pcdet.datasets import build_dataloader
-from pcdet.models import build_network, model_fn_decorator
 from pcdet.utils import common_utils
-from train_utils.optimization import build_optimizer, build_scheduler
-from train_utils.train_utils import train_model
-
-
+from tensorboardX import SummaryWriter
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
@@ -73,7 +66,6 @@ def main():
         args.batch_size = args.batch_size // total_gpus
 
     args.epochs = cfg.OPTIMIZATION.NUM_EPOCHS if args.epochs is None else args.epochs
-
     if args.fix_random_seed:
         common_utils.set_random_seed(666)
 
@@ -111,88 +103,7 @@ def main():
         merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch,
         total_epochs=args.epochs
     )
-
+  
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=train_set)
-    if args.sync_bn:
-        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-    model.cuda()
-
-    optimizer = build_optimizer(model, cfg.OPTIMIZATION)
-
-    # load checkpoint if it is possible
-    start_epoch = it = 0
-    last_epoch = -1
-    if args.pretrained_model is not None:
-        model.load_params_from_file(filename=args.pretrained_model, to_cpu=dist, logger=logger)
-
-  #  if args.ckpt is not None:
-  #      it, start_epoch = model.load_params_with_optimizer(args.ckpt, to_cpu=dist, optimizer=optimizer, logger=logger)
-  #      last_epoch = start_epoch + 1
-  #  else:
-  #      ckpt_list = glob.glob(str(ckpt_dir / '*checkpoint_epoch_*.pth'))
-  #      if len(ckpt_list) > 0:
-  #          ckpt_list.sort(key=os.path.getmtime)
-  #          it, start_epoch = model.load_params_with_optimizer(
-  #              ckpt_list[-1], to_cpu=dist, optimizer=optimizer, logger=logger
-  #          )
-  #          last_epoch = start_epoch + 1
-
-    model.train()  # before wrap to DistributedDataParallel to support fixed some parameters
-    if dist_train:
-        model = nn.parallel.DistributedDataParallel(model, device_ids=[cfg.LOCAL_RANK % torch.cuda.device_count()])
-    logger.info(model)
-
-    lr_scheduler, lr_warmup_scheduler = build_scheduler(
-        optimizer, total_iters_each_epoch=len(train_loader), total_epochs=args.epochs,
-        last_epoch=last_epoch, optim_cfg=cfg.OPTIMIZATION
-    )
-
-    # -----------------------start training---------------------------
-    logger.info('**********************Start training %s/%s(%s)**********************'
-                % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-    train_model(
-        model,
-        optimizer,
-        train_loader,
-        model_func=model_fn_decorator(),
-        lr_scheduler=lr_scheduler,
-        optim_cfg=cfg.OPTIMIZATION,
-        start_epoch=start_epoch,
-        total_epochs=args.epochs,
-        start_iter=it,
-        rank=cfg.LOCAL_RANK,
-        tb_log=tb_log,
-        ckpt_save_dir=ckpt_dir,
-        train_sampler=train_sampler,
-        lr_warmup_scheduler=lr_warmup_scheduler,
-        ckpt_save_interval=args.ckpt_save_interval,
-        max_ckpt_save_num=args.max_ckpt_save_num,
-        merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch
-    )
-
-    logger.info('**********************End training %s/%s(%s)**********************\n\n\n'
-                % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-
-  #  logger.info('**********************Start evaluation %s/%s(%s)**********************' %
-  #              (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-  #  test_set, test_loader, sampler = build_dataloader(
-  #      dataset_cfg=cfg.DATA_CONFIG,
-  #      class_names=cfg.CLASS_NAMES,
-  #      batch_size=args.batch_size,
-  #      dist=dist_train, workers=args.workers, logger=logger, training=False
-  #  )
-  #  eval_output_dir = output_dir / 'eval' / 'eval_with_train'
-  #  eval_output_dir.mkdir(parents=True, exist_ok=True)
-  #  args.start_epoch = max(args.epochs - 10, 0)  # Only evaluate the last 10 epochs
-
-  #  repeat_eval_ckpt(
-  #      model.module if dist_train else model,
-  #      test_loader, args, eval_output_dir, logger, ckpt_dir,
-  #      dist_test=dist_train
-  #  )
-  #  logger.info('**********************End evaluation %s/%s(%s)**********************' %
-  #              (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-
-
 if __name__ == '__main__':
     main()

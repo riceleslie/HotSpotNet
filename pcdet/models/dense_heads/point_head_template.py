@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import pdb
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import common_utils, loss_utils
 
@@ -104,6 +105,9 @@ class PointHeadTemplate(nn.Module):
 
             if ret_box_labels and gt_box_of_fg_points.shape[0] > 0:
                 point_box_labels_single = point_box_labels.new_zeros((bs_mask.sum(), 8))
+                # gt_boxes: gt_box location information
+                # points: point location information
+                # gt_classes: point class information
                 fg_point_box_labels = self.box_coder.encode_torch(
                     gt_boxes=gt_box_of_fg_points[:, :-1], points=points_single[fg_flag],
                     gt_classes=gt_box_of_fg_points[:, -1].long()
@@ -131,7 +135,6 @@ class PointHeadTemplate(nn.Module):
     def get_cls_layer_loss(self, tb_dict=None):
         point_cls_labels = self.forward_ret_dict['point_cls_labels'].view(-1)
         point_cls_preds = self.forward_ret_dict['point_cls_preds'].view(-1, self.num_class)
-
         positives = (point_cls_labels > 0)
         negative_cls_weights = (point_cls_labels == 0) * 1.0
         cls_weights = (negative_cls_weights + 1.0 * positives).float()

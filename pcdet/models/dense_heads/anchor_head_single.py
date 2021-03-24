@@ -1,6 +1,6 @@
 import numpy as np
 import torch.nn as nn
-
+import pdb
 from .anchor_head_template import AnchorHeadTemplate
 
 
@@ -39,16 +39,18 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         nn.init.normal_(self.conv_box.weight, mean=0, std=0.001)
 
     def forward(self, data_dict):
-        print("------------------------------AnchorHead--------------------------")
         spatial_features_2d = data_dict['spatial_features_2d']
 
+        #cls_preds: [1, 18, 200, 176]
+        #box_preds: [1, 42, 200, 176]
         cls_preds = self.conv_cls(spatial_features_2d)
         box_preds = self.conv_box(spatial_features_2d)
-        print("cls_preds_size: ",cls_preds.shape,"\n")
-        print("box_preds_size: ",box_preds.shape,"\n")
+        
+        #cls_preds: [1, 200, 176, 18]
+        #box_preds: [1, 200, 176, 42]
         cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
         box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
-
+        pdb.set_trace()
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
 
@@ -64,7 +66,7 @@ class AnchorHeadSingle(AnchorHeadTemplate):
                 gt_boxes=data_dict['gt_boxes']
             )
             self.forward_ret_dict.update(targets_dict)
-
+        pdb.set_trace()
         if not self.training or self.predict_boxes_when_training:
             batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
                 batch_size=data_dict['batch_size'],
@@ -73,6 +75,4 @@ class AnchorHeadSingle(AnchorHeadTemplate):
             data_dict['batch_cls_preds'] = batch_cls_preds
             data_dict['batch_box_preds'] = batch_box_preds
             data_dict['cls_preds_normalized'] = False
-        print("data_dict: ", data_dict.keys(),"\n")
-        print("-------------------------------------------------------------------\n")
         return data_dict

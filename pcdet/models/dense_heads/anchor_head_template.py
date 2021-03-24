@@ -7,7 +7,7 @@ from .target_assigner.anchor_generator import AnchorGenerator
 from .target_assigner.atss_target_assigner import ATSSTargetAssigner
 from .target_assigner.axis_aligned_target_assigner import AxisAlignedTargetAssigner
 
-
+import pdb
 class AnchorHeadTemplate(nn.Module):
     def __init__(self, model_cfg, num_class, class_names, grid_size, point_cloud_range, predict_boxes_when_training):
         super().__init__()
@@ -29,7 +29,6 @@ class AnchorHeadTemplate(nn.Module):
             anchor_ndim=self.box_coder.code_size
         )
         self.anchors = [x.cuda() for x in anchors]
-        print("self.anchors_size",len(self.anchors))
         self.target_assigner = self.get_target_assigner(anchor_target_cfg)
 
         self.forward_ret_dict = {}
@@ -62,6 +61,13 @@ class AnchorHeadTemplate(nn.Module):
             )
         elif anchor_target_cfg.NAME == 'AxisAlignedTargetAssigner':
             target_assigner = AxisAlignedTargetAssigner(
+                model_cfg=self.model_cfg,
+                class_names=self.class_names,
+                box_coder=self.box_coder,
+                match_height=anchor_target_cfg.MATCH_HEIGHT
+            )
+        elif anchor_target_cfg.NAME == 'HotspotsTargetAssigner':
+            target_assigner = HotspotsTargetAssigner(
                 model_cfg=self.model_cfg,
                 class_names=self.class_names,
                 box_coder=self.box_coder,
@@ -100,7 +106,6 @@ class AnchorHeadTemplate(nn.Module):
         return targets_dict
 
     def get_cls_layer_loss(self):
-        print("\n########## get_cls_layer_loss ##########\n")
         cls_preds = self.forward_ret_dict['cls_preds']
         # box_cls_labels: [3*70400==211200]
         box_cls_labels = self.forward_ret_dict['box_cls_labels']
@@ -112,6 +117,7 @@ class AnchorHeadTemplate(nn.Module):
         #cls_weights: [1, 211200]
         cls_weights = (negative_cls_weights + 1.0 * positives).float()
         reg_weights = positives.float()
+        pdb.set_trace()
         if self.num_class == 1:
             # class agnostic
             box_cls_labels[positives] = 1
@@ -138,7 +144,6 @@ class AnchorHeadTemplate(nn.Module):
         one_hot_targets = one_hot_targets[..., 1:]
         cls_loss_src = self.cls_loss_func(cls_preds, one_hot_targets, weights=cls_weights)  # [N, M]
         cls_loss = cls_loss_src.sum() / batch_size
-
         cls_loss = cls_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['cls_weight']
         tb_dict = {
             'rpn_loss_cls': cls_loss.item()
@@ -257,6 +262,7 @@ class AnchorHeadTemplate(nn.Module):
             batch_box_preds: (B, num_boxes, 7+C)
 
         """
+        print("generate_predicted_boxes\n")
         if isinstance(self.anchors, list):
             if self.use_multihead:
                 anchors = torch.cat([anchor.permute(3, 4, 0, 1, 2, 5).contiguous().view(-1, anchor.shape[-1])

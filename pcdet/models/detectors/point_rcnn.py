@@ -1,5 +1,5 @@
 from .detector3d_template import Detector3DTemplate
-
+import pdb
 
 class PointRCNN(Detector3DTemplate):
     def __init__(self, model_cfg, num_class, dataset):
@@ -12,6 +12,7 @@ class PointRCNN(Detector3DTemplate):
 
         if self.training:
             loss, tb_dict, disp_dict = self.get_training_loss()
+            pdb.set_trace()
 
             ret_dict = {
                 'loss': loss

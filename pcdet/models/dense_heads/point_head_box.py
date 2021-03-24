@@ -1,4 +1,5 @@
 import torch
+import pdb
 
 from ...utils import box_coder_utils, box_utils
 from .point_head_template import PointHeadTemplate
@@ -95,11 +96,12 @@ class PointHeadBox(PointHeadTemplate):
 
         ret_dict = {'point_cls_preds': point_cls_preds,
                     'point_box_preds': point_box_preds}
+        #front point / back point 
         if self.training:
             targets_dict = self.assign_targets(batch_dict)
             ret_dict['point_cls_labels'] = targets_dict['point_cls_labels']
             ret_dict['point_box_labels'] = targets_dict['point_box_labels']
-
+        # decode a predicted box corresspoding for one point
         if not self.training or self.predict_boxes_when_training:
             point_cls_preds, point_box_preds = self.generate_predicted_boxes(
                 points=batch_dict['point_coords'][:, 1:4],
@@ -109,6 +111,7 @@ class PointHeadBox(PointHeadTemplate):
             batch_dict['batch_box_preds'] = point_box_preds
             batch_dict['batch_index'] = batch_dict['point_coords'][:, 0]
             batch_dict['cls_preds_normalized'] = False
+        print("batch_dict: \n", batch_dict.keys(), '\n') 
 
         self.forward_ret_dict = ret_dict
 
