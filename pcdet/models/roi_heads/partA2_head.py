@@ -152,7 +152,6 @@ class PartA2FCHead(RoIHeadTemplate):
 
     @staticmethod
     def fake_sparse_idx(sparse_idx, batch_size_rcnn):
-        print('Warning: Sparse_Idx_Shape(%s) \r' % (str(sparse_idx.shape)), end='', flush=True)
         # at most one sample is non-empty, then fake the first voxels of each sample(BN needs at least
         # two values each channel) as non-empty for the below calculation
         sparse_idx = sparse_idx.new_zeros((batch_size_rcnn, 3))

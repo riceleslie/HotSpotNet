@@ -54,13 +54,12 @@ class HOSSmoothL1Loss(nn.Module):
     def forward(self, input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor = None):
 
         diff = input - target
-        # code-wise weighting
         #if self.code_weights is not None:
-         #   diff = diff * self.code_weights.view(1, 1, -1)
         self.code_weights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
         loss = self.smooth_l1_loss(diff, self.beta)
         
+        pdb.set_trace()
         if weights is not None:
             assert weights.shape[0] == loss.shape[0] and weights.shape[1] == loss.shape[1]
             loss = loss * weights
@@ -76,19 +75,35 @@ class BinaryFocalClassificationLoss(nn.Module):
 
     @staticmethod
     def sigmoid_cross_entropy_with_logits(input: torch.Tensor, target: torch.Tensor):
+        """ PyTorch Implementation for tf.nn.sigmoid_cross_entropy_with_logits:
+            max(x, 0) - x * z + log(1 + exp(-abs(x))) in
+            https://www.tensorflow.org/api_docs/python/tf/nn/sigmoid_cross_entropy_with_logits
+
+        Args:
+            input: (B, Length, Width) float tensor.
+                Predicted logits for hotspots without sigmoid
+            target: (B, Length, Width) float tensor.
+                targets:
+                1: hotspots
+                0: non-hotspots outside of GT_BOX
+                -1: non-hotspots inside of GT_BOX (ignored) 
+
+        Returns:
+            loss: (B, Length, Width) float tensor.
+                Sigmoid cross entropy loss without reduction
+        """
         loss = torch.clamp(input, min=0) - input * target + \
                torch.log1p(torch.exp(-torch.abs(input)))
         return loss
-
+    
     def forward(self, input: torch.Tensor, heatmap: torch.Tensor, weights: torch.Tensor):
         pred_sigmoid = torch.sigmoid(input)
+        pred_sigmoid = input
         target = heatmap
+        pt = torch.abs(target - pred_sigmoid)
         alpha_weight = target * self.alpha + (1 - target) * (1 - self.alpha)
-        pt = target * (1.0 - pred_sigmoid) + (1.0 - target) * pred_sigmoid
         focal_weight = alpha_weight * torch.pow(pt, self.gamma)
-
         bce_loss = self.sigmoid_cross_entropy_with_logits(input, target)
-
         loss = focal_weight * bce_loss
         
         assert weights.shape.__len__() == loss.shape.__len__()

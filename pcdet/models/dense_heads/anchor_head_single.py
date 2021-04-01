@@ -50,7 +50,6 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         #box_preds: [1, 200, 176, 42]
         cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
         box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
-        pdb.set_trace()
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
 
@@ -66,7 +65,6 @@ class AnchorHeadSingle(AnchorHeadTemplate):
                 gt_boxes=data_dict['gt_boxes']
             )
             self.forward_ret_dict.update(targets_dict)
-        pdb.set_trace()
         if not self.training or self.predict_boxes_when_training:
             batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
                 batch_size=data_dict['batch_size'],

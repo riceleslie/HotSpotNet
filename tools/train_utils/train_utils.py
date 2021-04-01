@@ -1,6 +1,6 @@
 import glob
 import os
-
+import numpy as np
 import torch
 import tqdm
 from torch.nn.utils import clip_grad_norm_
@@ -14,8 +14,9 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
     if rank == 0:
         pbar = tqdm.tqdm(total=total_it_each_epoch, leave=leave_pbar, desc='train', dynamic_ncols=True)
 
+    loss_save = []
     for cur_it in range(total_it_each_epoch):
-   # for cur_it in range(1):
+    #for cur_it in range(3):
         try:
             batch = next(dataloader_iter)
         except StopIteration:
@@ -37,7 +38,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         optimizer.zero_grad()
 
         loss, tb_dict, disp_dict = model_func(model, batch)
-
+        loss_save.append(loss)
         loss.backward()
         clip_grad_norm_(model.parameters(), optim_cfg.GRAD_NORM_CLIP)
         optimizer.step()
@@ -57,9 +58,10 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
                 tb_log.add_scalar('meta_data/learning_rate', cur_lr, accumulated_iter)
                 for key, val in tb_dict.items():
                     tb_log.add_scalar('train/' + key, val, accumulated_iter)
+#    np.save(f'./visual/loss.npy', torch.stack(loss_save, dim=0).cpu().detach().numpy())
     if rank == 0:
         pbar.close()
-    return accumulated_iter
+    return accumulated_iter, loss_save
 
 
 def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_cfg,
@@ -84,7 +86,7 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 cur_scheduler = lr_warmup_scheduler
             else:
                 cur_scheduler = lr_scheduler
-            accumulated_iter = train_one_epoch(
+            accumulated_iter, loss_save = train_one_epoch(
                 model, optimizer, train_loader, model_func,
                 lr_scheduler=cur_scheduler,
                 accumulated_iter=accumulated_iter, optim_cfg=optim_cfg,
@@ -93,6 +95,7 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 total_it_each_epoch=total_it_each_epoch,
                 dataloader_iter=dataloader_iter
             )
+            np.save(f'./visual/loss_%s.npy' % accumulated_iter, torch.stack(loss_save, dim=0).cpu().detach().numpy())
 
             # save trained model
             trained_epoch = cur_epoch + 1

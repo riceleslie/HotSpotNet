@@ -26,6 +26,7 @@ class HOSHeadTemplate(nn.Module):
         self.quadrant = target_assigner_cfg.QUADRANT
         self.num_max_objs = target_assigner_cfg.NUM_MAX_OBJS 
         self.feature_map_stride = target_assigner_cfg.FEATURE_MAP_STRIDE        
+        
         for cur_class_names in self.model_cfg.CLASS_NAMES_EACH_HEAD:
             self.class_names_each_head.append([x for x in cur_class_names if x in class_names])
             cur_class_id_mapping = torch.from_numpy(np.array(
@@ -59,8 +60,6 @@ class HOSHeadTemplate(nn.Module):
         hos_box_code = gt_boxes.new_zeros((feature_map_size[0] * feature_map_size[1],  gt_boxes.shape[-1] - 1 + 1))
         quadrant_labels = gt_boxes.new_zeros((feature_map_size[0] * feature_map_size[1],  4))
         
-        inds = gt_boxes.new_zeros(num_max_objs).long()
-        mask = gt_boxes.new_zeros(num_max_objs).long()
 
         x, y, z = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2]
         l, w, h = gt_boxes[:, 3], gt_boxes[:, 4], gt_boxes[:, 5]
@@ -81,8 +80,6 @@ class HOSHeadTemplate(nn.Module):
         
         center = torch.cat((x[:, None], y[:, None], l[:, None], w[:, None]), dim=-1)
         center_int = center.int()
-        num_max_hots = np.floor(num_max_objs / x_stride / y_stride)
-        num_max_hots = num_max_hots.astype(np.int16) 
         for k in range(gt_boxes.shape[0]):
             if l[k] <= 0 or w[k] <= 0:
                 continue
@@ -92,11 +89,10 @@ class HOSHeadTemplate(nn.Module):
 
             cur_class_id = (gt_boxes[k, -1] - 1).long()
             
-            hotspots, mask, quadrant = centernet_utils.obtain_cls_heatmap(heatmap, center[k], x_shifts, y_shifts, num_max_hots)
-            pdb.set_trace()
+            hotspots, mask, quadrants = centernet_utils.obtain_cls_heatmap(heatmap, center[k], x_shifts, y_shifts, num_max_objs)
             arg_mask = torch.gt(mask.view(-1), 0)
-            if arg_mask.sum() == quadrant.shape[0]:
-                quadrant_labels[arg_mask] = quadrant.cuda().float()
+            if arg_mask.sum() == quadrants.shape[0]:
+                quadrant_labels[arg_mask] = quadrants.cuda().float()
             
             if arg_mask.sum() > 0:    
                 hos_box_code[arg_mask, 0:2] = hotspots.to(hos_box_code.device)
@@ -105,15 +101,15 @@ class HOSHeadTemplate(nn.Module):
                 # obtain reg labels for every gt
                 hos_box_labels[arg_mask] = self.box_coder.encode_torch(gt_box = gt_boxes[k, :-1], hotspots = hos_box_code[arg_mask])
         
-        #np.save('./visual/gt_box_01.npy', center.cpu().numpy())
-        #np.save('./visual/heatmap_01.npy', heatmap.cpu().numpy())
         return heatmap, hos_box_labels, quadrant_labels
 
 
     def build_losses(self):
         self.add_module('cls_loss_func', loss_utils.BinaryFocalClassificationLoss())
-        self.add_module('reg_loss_func', loss_utils.HOSSmoothL1Loss())
-        self.add_module('spa_loss_func', loss_utils.HOSBCELoss())
+        #self.add_module('reg_loss_func', loss_utils.HOSSmoothL1Loss())
+        #self.add_module('spa_loss_func', loss_utils.HOSBCELoss())
+        self.reg_loss_func = nn.functional.smooth_l1_loss
+        self.spa_loss_func = nn.functional.binary_cross_entropy
 
 
     def get_loss(self):
@@ -124,56 +120,128 @@ class HOSHeadTemplate(nn.Module):
         hos_box_labels = self.forward_ret_dict['hos_box_labels']
         quadrant_labels = self.forward_ret_dict['quadrant_labels']
         
-        code_size = box_preds.shape[-1]
-        batch_size = heatmaps.shape[1]
-        quadrant_size = spa_preds.shape[-1]        
-        cls_preds = cls_preds.permute(3, 0, 1, 2).contiguous()
-        heatmaps = heatmaps.permute(1, 0, 2, 3).contiguous()
-        hos_box_labels = hos_box_labels.permute(1, 0, 2, 3).contiguous().sum(dim=0).view(-1,code_size) 
-        box_preds = box_preds.view(-1,code_size)
-        quadrant_labels = quadrant_labels.permute(1, 0, 2, 3).contiguous().sum(dim=0).view(-1,quadrant_size) 
-        spa_preds = spa_preds.view(-1,quadrant_size)
+        code_size = self.box_coder.code_size
+        quadrant_size = self.quadrant        
+        batch_size = heatmaps.shape[0]
+        
         
         tb_dict = {}
         loss = 0
         cls_loss = 0
         mask = 0
         # classification loss
+        cls_preds = cls_preds.permute(3, 0, 1, 2).contiguous()
+        heatmaps = heatmaps.permute(1, 0, 2, 3).contiguous()
         for idx, cur_class_names in enumerate(self.class_names_each_head):
             targets = heatmaps[idx]
             positives = (targets > 0)
             negatives = (targets == 0)
             cls_weights = (positives + negatives).float()
-            pos_normalizer = cls_weights.sum().float()
-            cls_weights /= torch.clamp(pos_normalizer, min=1)
+            pos_normalizer = torch.sum(torch.sum(cls_weights, dim=1), dim=1)
+            pos_norm = pos_normalizer.unsqueeze(-1).unsqueeze(-1).expand_as(cls_weights)
+            cls_weights /= torch.clamp(pos_norm, min=1)
             
             hm_loss = self.cls_loss_func(cls_preds[idx], targets, cls_weights)
-            
             tb_dict['hm_loss_head_%d' % idx] = (hm_loss.sum() / batch_size).item()
             
-            cls_loss += hm_loss
-         
+            cls_loss += hm_loss/batch_size
+            mask += targets 
+        
         # regression loss
-        reg_mask = positives.view(-1)
-        reg_weights = box_preds.new_ones(box_preds.shape)
-        reg_normalizer = positives.sum().float()
-        reg_weights /= torch.clamp(reg_normalizer, min=1)
-        hots_weights = reg_weights[reg_mask]
+        box_preds = box_preds.view(-1,code_size)
+        hos_box_labels = hos_box_labels.view(-1,code_size) 
+        reg_mask = torch.gt(mask.view(-1), 0)
+        ## reg_loss is divided by 8
+        #reg_weights = box_preds.new_ones(box_preds.shape)
+        #reg_normalizer = reg_mask.sum().float()
+        #reg_weights /= torch.clamp(reg_normalizer, min=1)
+        #hots_weights = reg_weights[reg_mask]
         hots_preds = box_preds[reg_mask]
         hots_labels = hos_box_labels[reg_mask]
-        
-        reg_loss = self.reg_loss_func(hots_preds, hots_labels, hots_weights)
-        reg_loss = reg_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
+        reg_loss = self.reg_loss_func(hots_preds, hots_labels)
+        #reg_loss = self.reg_loss_func(hots_preds, hots_labels, hots_weights)
+        reg_loss = 8 * reg_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
+        tb_dict['loc_loss_head'] =(reg_loss.sum()).item()
           
         # spatial relationship loss
-        spa_loss = self.spa_loss_func(spa_preds[reg_mask], quadrant_labels[reg_mask])
-        #tb_dict['loc_loss_head' % idx] =(reg_loss.sum() / batch_size).item()
-           
+        spa_loss = 0
+        quadrant_labels = quadrant_labels.view(-1,quadrant_size) 
+        spa_preds = spa_preds.view(-1,quadrant_size)
+        hots_quad_labels = quadrant_labels[reg_mask]
+        hots_quad_preds = spa_preds[reg_mask]
+        hots_quad_preds = hots_quad_labels * hots_quad_preds
+        
+        for idx in range(4):
+            spa_loss_sub = self.spa_loss_func(hots_quad_preds[:,idx].squeeze(),hots_quad_labels[:,idx].squeeze())
+            spa_loss += spa_loss_sub
+        tb_dict['spa_loss_head'] =(spa_loss.sum()).item()
+        
         loss = cls_loss.sum()  + reg_loss.sum() + spa_loss
+        #loss = cls_loss.sum()  + reg_loss.sum()
         
         tb_dict['rpn_loss'] = loss
         return loss, tb_dict
 
+    def generate_predicted_boxes(self, batch_size, cls_preds, box_preds):
+        """
+        Args:
+            batch_size: N
+            cls_preds: (N, L, W, C)
+            box_preds: (N, L*W, 8)
+
+        Returns:
+
+        """
+
+        post_process_cfg = self.model_cfg.POST_PROCESSING
+        ret_dict = [{
+            'pred_boxes': [],
+            'pred_scores': [],
+            'pred_labels': [],
+        }for k in range(batch_size)]
+        box_dict, cls_dict, sco_dict = [], [], [] 
+        for idx in range(batch_size):
+            batch_hm = cls_preds[idx].sigmoid_()
+            batch_box = box_preds[idx]
+            final_pred_dicts = centernet_utils.decode_bbox_from_heatmap(
+                heatmap=batch_hm, boxes=batch_box, point_cloud_range=self.point_cloud_range,
+                feature_map_size=batch_hm.shape[0:2],
+                score_thresh=post_process_cfg.SCORE_THRESH,
+                K=post_process_cfg.MAX_OBJ_PER_SAMPLE,
+                nms_thresh=post_process_cfg.NMS_CONFIG.NMS_THRESH
+            )
+            
+           # batch_box_preds.append(final_pred_dicts['pred_boxes'])
+           # batch_cls_preds.append(final_pred_dicts['pred_labels'])
+            box_dict.append(final_pred_dicts['pred_boxes'])
+            sco_dict.append(final_pred_dicts['pred_scores'])
+            cls_dict.append(final_pred_dicts['pred_labels'])
+            #ret_dict[idx]['pred_boxes'].append(final_pred_dicts['pred_boxes'])
+            #ret_dict[idx]['pred_scores'].append(final_pred_dicts['pred_scores'])
+            #ret_dict[idx]['pred_labels'].append(final_pred_dicts['pred_labels'])
+           # for k, final_dict in enumerate(final_pred_dicts):
+           #     final_dict['pred_labels'] = self.class_id_mapping_each_head[idx][final_dict['pred_labels'].long()]
+           #     if post_process_cfg.NMS_CONFIG.NMS_TYPE != 'circle_nms':
+           #         selected, selected_scores = model_nms_utils.class_agnostic_nms(
+           #             box_scores=final_dict['pred_scores'], box_preds=final_dict['pred_boxes'],
+           #             nms_config=post_process_cfg.NMS_CONFIG,
+           #             score_thresh=None
+           #         )
+
+           #         final_dict['pred_boxes'] = final_dict['pred_boxes'][selected]
+           #         final_dict['pred_scores'] = selected_scores
+           #         final_dict['pred_labels'] = final_dict['pred_labels'][selected]
+
+           #     ret_dict[k]['pred_boxes'].append(final_dict['pred_boxes'])
+           #     ret_dict[k]['pred_scores'].append(final_dict['pred_scores'])
+           #     ret_dict[k]['pred_labels'].append(final_dict['pred_labels'])
+
+       # for k in range(batch_size):
+       #     ret_dict[k]['pred_boxes'] = torch.cat(ret_dict[k]['pred_boxes'], dim=0)
+       #     ret_dict[k]['pred_scores'] = torch.cat(ret_dict[k]['pred_scores'], dim=0)
+       #     ret_dict[k]['pred_labels'] = torch.cat(ret_dict[k]['pred_labels'], dim=0)
+
+        return box_dict, cls_dict, sco_dict
 
     def forward(self, **kwargs):
         raise NotImplementedError

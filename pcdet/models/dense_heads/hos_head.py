@@ -25,7 +25,6 @@ class HOSHead(HOSHeadTemplate):
             bias=-np.log((1 - pi) / pi),
             padding=1
             ),
-            nn.Sigmoid()
         )
         self.conv_box = nn.Conv2d(
             input_channels, self.box_coder.code_size,
@@ -43,6 +42,8 @@ class HOSHead(HOSHeadTemplate):
     def init_weights(self):
         nn.init.normal_(self.conv_box.weight, mean=0, std=0.001)
         nn.init.normal_(self.conv_shared.weight, mean=0, std=0.001)
+        nn.init.normal_(self.conv_cls[0].weight, mean=0, std=0.001)
+        nn.init.normal_(self.conv_spa[0].weight, mean=0, std=0.001)
 
     def assign_targets(self, gt_boxes):
         """
@@ -62,6 +63,7 @@ class HOSHead(HOSHeadTemplate):
 
         heatmaps, hos_box_labels, quadrant_labels  = [], [], []
         all_names = np.array(['bg', *self.class_names])
+        # loop one batch
         for bs_idx in range(batch_size):
             cur_gt_boxes = gt_boxes[bs_idx]
             heatmap_list, hos_box_list, quadrant_list, = [], [], []
@@ -90,36 +92,46 @@ class HOSHead(HOSHeadTemplate):
                 heatmap_list.append(heatmap)
                 hos_box_list.append(hos_box_label)
                 quadrant_list.append(quadrant_label)
-                np.save(f'./visual/gt_box_%s.npy' % class_idx, gt_boxes_single_head.cpu().numpy())
-                np.save(f'./visual/heatmap_%s.npy' % class_idx, heatmap.cpu().numpy())
+                #np.save(f'./visual/gt_box_%s.npy' % class_idx, gt_boxes_single_head.cpu().numpy())
+                #np.save(f'./visual/heatmap_%s.npy' % class_idx, heatmap.cpu().numpy())
+                #np.save(f'./visual/quadrant_%s.npy' % class_idx, quadrant_label.cpu().numpy())
                 
             heatmaps.append(torch.stack(heatmap_list, dim=0))
             hos_box_labels.append(torch.stack(hos_box_list, dim=0))
             quadrant_labels.append(torch.stack(quadrant_list, dim=0))
         
-        pdb.set_trace()
         ret_dict['heatmaps'] = torch.stack(heatmaps, dim=0)
-        ret_dict['hos_box_labels'] = torch.stack(hos_box_labels, dim=0)
-        ret_dict['quadrant_labels'] = torch.stack(quadrant_labels, dim=0)
+        ret_dict['quadrant_labels'] = torch.sum(torch.stack(quadrant_labels, dim=0), dim=1)
+        ret_dict['hos_box_labels'] = torch.sum(torch.stack(hos_box_labels, dim=0), dim=1)
         return ret_dict
     
     def forward(self, data_dict):
+        """
+        Args:
+            gt_boxes: (B, M, 8)
+        Returns:
+
+        """
         spatial_features_2d = data_dict['spatial_features_2d']
         shared_features_2d = self.conv_shared(spatial_features_2d)
-        
-        #cls_preds: [1, 3, 200, 176]
-        #box_preds: [1, 8, 200, 176]
+        batch_size = data_dict['batch_size'] 
+        #cls_preds: [batch_size, class_num, width, length]
+        #box_preds: [batch_size, code_size, width, length]
+        #spa_preds: [batch_size, quadrant, width, length]
         cls_preds = self.conv_cls(shared_features_2d)
         box_preds = self.conv_box(shared_features_2d)
         spa_preds = self.conv_spa(shared_features_2d) 
-        #cls_preds: [1, 176, 200, 3]
-        #box_preds: [1, 176, 200, 8]
-        cls_preds = cls_preds.permute(0, 3, 2, 1).contiguous()  # [N, H, W, C]
-        box_preds = box_preds.permute(0, 3, 2, 1).contiguous()  # [N, H, W, C]
-        spa_preds = spa_preds.permute(0, 3, 2, 1).contiguous()  # [N, H, W, C]
+        #cls_preds: [batch_size, length, width, class_num]
+        #box_preds: [batch_size, length, width, code_size]
+        #spa_preds: [batch_size, length, width, quadrant]
+        cls_preds = cls_preds.permute(0, 3, 2, 1).contiguous() 
+        box_preds = box_preds.permute(0, 3, 2, 1).contiguous() 
+        spa_preds = spa_preds.permute(0, 3, 2, 1).contiguous()
         
-        box_preds = box_preds.view(data_dict['batch_size'], -1, self.box_coder.code_size)
-        spa_preds = spa_preds.view(data_dict['batch_size'], -1, self.quadrant)
+        #box_preds: [batch_size, length*width, code_size]
+        #spa_preds: [batch_size, length*width, quadrant]
+        box_preds = box_preds.view(batch_size, -1, self.box_coder.code_size)
+        spa_preds = spa_preds.view(batch_size, -1, self.quadrant)
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
         self.forward_ret_dict['spa_preds'] = spa_preds
@@ -131,11 +143,13 @@ class HOSHead(HOSHeadTemplate):
             self.forward_ret_dict.update(targets_dict)
         
         if not self.training or self.predict_boxes_when_training:
-            batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
-                batch_size=data_dict['batch_size'],
-                cls_preds=cls_preds, box_preds=box_preds, dir_cls_preds=dir_cls_preds
+            box_dict, cls_dict, sco_dict = self.generate_predicted_boxes(
+                batch_size=batch_size, cls_preds=cls_preds, box_preds=box_preds
             )
-            data_dict['batch_cls_preds'] = batch_cls_preds
-            data_dict['batch_box_preds'] = batch_box_preds
-            data_dict['cls_preds_normalized'] = False
+            data_dict['batch_box_preds'] = box_dict
+            data_dict['batch_cls_preds'] = cls_dict
+            data_dict['batch_sco_preds'] = sco_dict
+            #data_dict['batch_cls_preds'] = torch.stack(batch_cls_preds, dim=-1).permute(1,0).unsqueeze(-1)
+            #data_dict['batch_box_preds'] = torch.stack(batch_box_preds, dim=-1).permute(2,0,1)
+            data_dict['cls_preds_normalized'] = True
         return data_dict

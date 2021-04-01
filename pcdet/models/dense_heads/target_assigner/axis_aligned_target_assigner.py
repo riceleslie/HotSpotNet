@@ -126,7 +126,6 @@ class AxisAlignedTargetAssigner(object):
             cls_labels.append(target_dict['box_cls_labels'])
             reg_weights.append(target_dict['reg_weights'])
 
-        pdb.set_trace()
         bbox_targets = torch.stack(bbox_targets, dim=0)
 
         cls_labels = torch.stack(cls_labels, dim=0)

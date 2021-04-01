@@ -170,10 +170,7 @@ class UNetV2(nn.Module):
                 encoded_spconv_tensor: sparse tensor
                 point_features: (N, C)
         """
-        print("-------------------------------------UNET---------------------------------------")
         voxel_features, voxel_coords = batch_dict['voxel_features'], batch_dict['voxel_coords']
-        print("voxel_coords: ",voxel_coords.shape,'\n')
-        print("voxel_features: ",voxel_features.shape,'\n')
         batch_size = batch_dict['batch_size']
         input_sp_tensor = spconv.SparseConvTensor(
             features=voxel_features,
@@ -211,8 +208,4 @@ class UNetV2(nn.Module):
             point_cloud_range=self.point_cloud_range
         )
         batch_dict['point_coords'] = torch.cat((x_up1.indices[:, 0:1].float(), point_coords), dim=1)
-        print("batch_dict:\n", batch_dict.keys(), '\n')
-        print("point_features: ",batch_dict['point_features'].shape,'\n')
-        print("point_coords: ",batch_dict['point_coords'].shape,'\n')
-        print("--------------------------------------------------------------------------------\n")
         return batch_dict

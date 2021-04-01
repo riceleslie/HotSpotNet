@@ -222,13 +222,9 @@ class PointResidualCoder(object):
         return torch.cat([xg, yg, zg, dxg, dyg, dzg, rg, *cgs], dim=-1)
 
 class HOSResidualCoder(object):
-    def __init__(self, code_size=8, use_mean_size=True, **kwargs):
+    def __init__(self, code_size=8, **kwargs):
         super().__init__()
         self.code_size = code_size
-        self.use_mean_size = use_mean_size
-        if self.use_mean_size:
-            self.mean_size = torch.from_numpy(np.array(kwargs['mean_size'])).cuda().float()
-            assert self.mean_size.min() > 0
 
     def encode_torch(self, gt_box, hotspots):
         """
@@ -236,7 +232,7 @@ class HOSResidualCoder(object):
             gt_box: (1, 7 + C) [x, y, z, dx, dy, dz, heading, ...]
             hotspots: (N, 3) [x, y, z]
         Returns:
-            box_coding: (N, 8 + C)
+            box_coding: (N, 8)
         """
         hos_box_labels = gt_box.new_zeros(hotspots.shape[0], self.code_size)
         gt_box[3:6] = torch.clamp_min(gt_box[3:6], min=1e-5)
@@ -257,3 +253,34 @@ class HOSResidualCoder(object):
         hos_box_labels[:,3:8] = torch.cat([dxt, dyt, dzt, crt, srt], dim=-1)
         
         return hos_box_labels
+    
+    def decode_torch(self, box_encodings, anchors):
+        """
+        Args:
+            box_encodings: (B, N, 7 + C) or (N, 7 + C) [x, y, z, dx, dy, dz, heading or *[cos, sin], ...]
+            anchors: (B, N, 7 + C) or (N, 7 + C) [x, y, z, dx, dy, dz, heading, ...]
+
+        Returns:
+
+        """
+        xa, ya, za, dxa, dya, dza, ra, *cas = torch.split(anchors, 1, dim=-1)
+        xt, yt, zt, dxt, dyt, dzt, cost, sint = torch.split(box_encodings, 1, dim=-1)
+
+        diagonal = torch.sqrt(dxa ** 2 + dya ** 2)
+        xg = xt * diagonal + xa
+        yg = yt * diagonal + ya
+        zg = zt * dza + za
+
+        dxg = torch.exp(dxt) * dxa
+        dyg = torch.exp(dyt) * dya
+        dzg = torch.exp(dzt) * dza
+
+        if self.encode_angle_by_sincos:
+            rg_cos = cost + torch.cos(ra)
+            rg_sin = sint + torch.sin(ra)
+            rg = torch.atan2(rg_sin, rg_cos)
+        else:
+            rg = rt + ra
+
+        cgs = [t + a for t, a in zip(cts, cas)]
+        return torch.cat([xg, yg, zg, dxg, dyg, dzg, rg, *cgs], dim=-1)

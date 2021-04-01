@@ -129,7 +129,6 @@ class PointRCNNHead(RoIHeadTemplate):
                 pooled_features[:, :, 0:3], -rois.view(-1, rois.shape[-1])[:, 6]
             )
             pooled_features[pooled_empty_flag.view(-1) > 0] = 0
-        pdb.set_trace()
         return pooled_features
 
     def forward(self, batch_dict):

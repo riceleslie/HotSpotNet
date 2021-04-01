@@ -12,7 +12,6 @@ class PointRCNN(Detector3DTemplate):
 
         if self.training:
             loss, tb_dict, disp_dict = self.get_training_loss()
-            pdb.set_trace()
 
             ret_dict = {
                 'loss': loss

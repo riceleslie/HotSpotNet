@@ -64,35 +64,19 @@ class RoIHeadTemplate(nn.Module):
         batch_size = batch_dict['batch_size']
         batch_box_preds = batch_dict['batch_box_preds']
         batch_cls_preds = batch_dict['batch_cls_preds']
-        print("\n\n---------------------------------Proposal Layer--------------------------------")
-        print("batch_box_preds: ",batch_box_preds.shape,'\n')
-        print("batch_cls_preds: ",batch_cls_preds.shape,'\n')
         rois = batch_box_preds.new_zeros((batch_size, nms_config.NMS_POST_MAXSIZE, batch_box_preds.shape[-1]))
         roi_scores = batch_box_preds.new_zeros((batch_size, nms_config.NMS_POST_MAXSIZE))
         roi_labels = batch_box_preds.new_zeros((batch_size, nms_config.NMS_POST_MAXSIZE), dtype=torch.long)
-        print("rois: ",rois.shape,'\n')
-        print("rois_scores: ",roi_scores.shape,'\n')
-        print("rois_labels: ",roi_labels.shape,'\n')
         for index in range(batch_size):
             if batch_dict.get('batch_index', None) is not None:
                 assert batch_cls_preds.shape.__len__() == 2
                 batch_mask = (batch_dict['batch_index'] == index)
-                #print("batch_mask: ",batch_mask,'\n')
             else:
                 assert batch_dict['batch_cls_preds'].shape.__len__() == 3
                 batch_mask = index
-                #print("2-batch_mask: ",batch_mask,'\n')
             box_preds = batch_box_preds[batch_mask]
             cls_preds = batch_cls_preds[batch_mask]
-            print("box_preds: ",box_preds.shape,'\n')
-            print("cls_preds: ",cls_preds.shape,'\n')
-            print("box_preds[0:5,:]: ",box_preds[0:5,:],'\n')
-            print("cls_preds[0:5,:]: ",cls_preds[0:5,:],'\n')
             cur_roi_scores, cur_roi_labels = torch.max(cls_preds, dim=1)
-            print("cur_roi_scores: ",cur_roi_scores.shape,'\n')
-            print("cur_roi_labels: ",cur_roi_labels.shape,'\n')
-            print("cur_roi_scores[0:5]: ",cur_roi_scores[0:5],'\n')
-            print("cur_roi_labels[0:5]: ",cur_roi_labels[0:5],'\n')
             if nms_config.MULTI_CLASSES_NMS:
                 raise NotImplementedError
             else:
@@ -103,7 +87,6 @@ class RoIHeadTemplate(nn.Module):
             rois[index, :len(selected), :] = box_preds[selected]
             roi_scores[index, :len(selected)] = cur_roi_scores[selected]
             roi_labels[index, :len(selected)] = cur_roi_labels[selected]
-            print("selected box num: ",len(selected),'\n') 
         batch_dict['rois'] = rois
         batch_dict['roi_scores'] = roi_scores
         batch_dict['roi_labels'] = roi_labels + 1

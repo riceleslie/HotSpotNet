@@ -4,6 +4,7 @@ import numpy as np
 import array
 import math
 from itertools import product
+from . import box_utils
 import pdb
 #import numba
 
@@ -12,11 +13,11 @@ def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):
     heatmap_mask = torch.zeros(heatmap.shape)
     mask = torch.zeros(heatmap.shape)
     x, y, l, w = center[0:4]   
-    
     bottom = x + l / 2
     top = x - l / 2
     left = y - w / 2
     right = y + w / 2
+    MAX = num_max_objs / l / w
 
     masks_x = ((x_shifts > top) & (x_shifts < bottom))
     masks_y = ((y_shifts > left) & (y_shifts < right))
@@ -30,7 +31,7 @@ def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):
     spots_y = y_shifts[masks_y]
     spots = torch.Tensor(list(product(spots_x, spots_y)))
     
-    if num > num_max_objs:
+    if num > MAX.cpu().long():
         spots_dist = torch.pow((spots[:,0]-x),2) + torch.pow((spots[:,1]-y),2)
         value, ind = spots_dist.sort()
         spots_dist[ind[0:num_max_objs]] = 1
@@ -124,12 +125,31 @@ def _nms(heat, kernel=3):
     keep = (hmax == heat).float()
     return heat * keep
 
+def boxes_iou(box_a, box_b):
+    """
+    Args:
+        box_a: (xmin, xmax, ymin, ymax)
+        box_b: (xmin, xmax, ymin, ymax)
+
+    Returns:
+        iou between box_a and box_b
+    """
+    assert box_a.shape == box_b.shape
+    x_min = torch.max(box_a[0], box_b[0])
+    x_max = torch.min(box_a[1], box_b[1])
+    y_min = torch.max(box_a[2], box_b[2])
+    y_max = torch.min(box_a[3], box_b[3])
+    x_len = torch.clamp_min(x_max - x_min, min=0)
+    y_len = torch.clamp_min(y_max - y_min, min=0)
+    area_a = (box_a[1] - box_a[0]) * (box_a[3] - box_a[2])
+    area_b = (box_b[1] - box_b[0]) * (box_b[3] - box_b[2])
+    a_intersect_b = x_len * y_len
+    iou = a_intersect_b / torch.clamp_min(area_a + area_b - a_intersect_b, min=1e-6)
+    return iou
 
 #@numba.jit(nopython=True)
-def circle_nms(dets, thresh):
-    x1 = dets[:, 0]
-    y1 = dets[:, 1]
-    scores = dets[:, 2]
+def nms_with_iou(dets, thresh):
+    scores = dets[:, 4].cpu().numpy()
     order = scores.argsort()[::-1].astype(np.int32)  # highest->lowest
     ndets = dets.shape[0]
     suppressed = np.zeros((ndets), dtype=np.int32)
@@ -143,30 +163,21 @@ def circle_nms(dets, thresh):
             j = order[_j]
             if suppressed[j] == 1:
                 continue
-            # calculate center distance between i and j box
-            dist = (x1[i] - x1[j]) ** 2 + (y1[i] - y1[j]) ** 2
-
+            # calculate iou between i and j box
+            dist = boxes_iou(dets[i,0:4], dets[j,0:4])
             # ovr = inter / areas[j]
-            if dist <= thresh:
+            if dist > thresh:
                 suppressed[j] = 1
     return keep
 
-
-def _circle_nms(boxes, min_radius, post_max_size=83):
-    """
-    NMS according to center distance
-    """
-    keep = np.array(circle_nms(boxes.cpu().numpy(), thresh=min_radius))[:post_max_size]
-
-    keep = torch.from_numpy(keep).long().to(boxes.device)
-
-    return keep
-
-
 def _gather_feat(feat, ind, mask=None):
-    dim = feat.size(2)
-    ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
-    feat = feat.gather(1, ind)
+    if len(feat.shape) == 1:
+        feat = feat.unsqueeze(-1)
+    dim = feat.size(1)
+    ind = ind.unsqueeze(1).expand(ind.size(0), dim)
+    feat = feat.gather(0, ind)
+    if feat.shape[-1] == 1:
+        feat = feat.squeeze(-1)
     if mask is not None:
         mask = mask.unsqueeze(2).expand_as(feat)
         feat = feat[mask]
@@ -175,88 +186,129 @@ def _gather_feat(feat, ind, mask=None):
 
 
 def _transpose_and_gather_feat(feat, ind):
-    feat = feat.permute(0, 2, 3, 1).contiguous()
+    feat = feat.permute(1, 2, 0).contiguous()
     feat = feat.view(feat.size(0), -1, feat.size(3))
     feat = _gather_feat(feat, ind)
     return feat
 
 
 def _topk(scores, K=40):
-    batch, num_class, height, width = scores.size()
+    height, width, num_class = scores.size()
 
-    topk_scores, topk_inds = torch.topk(scores.flatten(2, 3), K)
-
+    topk_scores, topk_inds = torch.topk(scores.flatten(0, 1),K,dim=0)
     topk_inds = topk_inds % (height * width)
-    topk_ys = (topk_inds // width).float()
-    topk_xs = (topk_inds % width).int().float()
+    topk_xs = (topk_inds // width).float()
+    topk_ys = (topk_inds % width).int().float()
 
-    topk_score, topk_ind = torch.topk(topk_scores.view(batch, -1), K)
+    topk_score, topk_ind = torch.topk(topk_scores.view(-1), K)
     topk_classes = (topk_ind // K).int()
-    topk_inds = _gather_feat(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
-    topk_ys = _gather_feat(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
-    topk_xs = _gather_feat(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
+    topk_inds = _gather_feat(topk_inds.view(-1, 1), topk_ind).view(K)
+    topk_ys = _gather_feat(topk_ys.view(-1, 1), topk_ind).view(K)
+    topk_xs = _gather_feat(topk_xs.view(-1, 1), topk_ind).view(K)
 
     return topk_score, topk_inds, topk_classes, topk_ys, topk_xs
 
 
-def decode_bbox_from_heatmap(heatmap, rot_cos, rot_sin, center, center_z, dim,
-                             point_cloud_range, voxel_size, feature_map_stride, vel=None, K=100,
-                             circle_nms=False, score_thresh=None, post_center_limit_range=None,
-                             min_radius=2, nms_post_max_size=83):
-    batch_size, num_class, _, _ = heatmap.size()
-
-    if circle_nms:
-        heat = _nms(heat)
-
+def decode_bbox_from_heatmap(heatmap, boxes, point_cloud_range, feature_map_size,
+                                score_thresh=0.3, K=100, nms_thresh=0.01):
+    
     scores, inds, class_ids, ys, xs = _topk(heatmap, K=K)
-    center = _transpose_and_gather_feat(center, inds).view(batch_size, K, 2)
-    rot_sin = _transpose_and_gather_feat(rot_sin, inds).view(batch_size, K, 1)
-    rot_cos = _transpose_and_gather_feat(rot_cos, inds).view(batch_size, K, 1)
-    center_z = _transpose_and_gather_feat(center_z, inds).view(batch_size, K, 1)
-    dim = _transpose_and_gather_feat(dim, inds).view(batch_size, K, 3)
-
-    xs = xs.view(batch_size, K, 1) + center[:, :, 0:1]
-    ys = ys.view(batch_size, K, 1) + center[:, :, 1:2]
+    distance = boxes[:,0:2]
+    center_z = boxes[:,2]
+    sides = boxes[:,3:6]
+    rot_cos = boxes[:,6]
+    rot_sin = boxes[:,7]
+    #pdb.set_trace()
+    # obtain top K predicted box information
+    distance = _gather_feat(distance, inds).view(K,2)
+    center_z = _gather_feat(center_z, inds).view(K,1)
+    sides = _gather_feat(sides, inds).view(K,3)
+    rot_sin = _gather_feat(rot_sin, inds).view(K,1) 
+    rot_cos = _gather_feat(rot_cos, inds).view(K,1) 
+    #pdb.set_trace()
+    # generate centers and cast feature_map to point_cloud field 
+    x_stride = (point_cloud_range[3] - point_cloud_range[0]) / feature_map_size[0]
+    y_stride = (point_cloud_range[4] - point_cloud_range[1]) / feature_map_size[1]
+    z_stride = point_cloud_range[5] - point_cloud_range[2]
+    x_offset = x_stride / 2
+    y_offset = y_stride / 2
+    
+    x_shifts = torch.arange(
+        point_cloud_range[0] + x_offset, point_cloud_range[3] + 1e-5, step=x_stride, dtype=torch.float32,
+    ).cuda()
+    y_shifts = torch.arange(
+        point_cloud_range[1] + y_offset, point_cloud_range[4] + 1e-5, step=y_stride, dtype=torch.float32,
+    ).cuda()
+    z_shifts = x_shifts.new_tensor(z_stride / 2)
+    
+    # obtain top K nuerons' centers of point_cloud field    
+    xs = _gather_feat(x_shifts, xs.long())
+    ys = _gather_feat(y_shifts, ys.long())
+    #pdb.set_trace()
+    
+    # obatain bounding box information
     angle = torch.atan2(rot_sin, rot_cos)
+    center_x = xs + distance[:,0]
+    center_y = ys + distance[:,1]
+    center_z = center_z + z_shifts
+    side_l = torch.exp(sides[:,0])
+    side_w = torch.exp(sides[:,1])
+    side_h = torch.exp(sides[:,2])
+    boxes_list = [center_x, center_y, center_z.squeeze(-1), side_l, side_w, side_h]
+    boxes_list.append(angle.squeeze(-1))
+    boxes_list.append(class_ids.float())
+    final_box_preds = torch.stack(boxes_list, dim=-1)
+    final_scores = scores.view(K)
 
-    xs = xs * feature_map_stride * voxel_size[0] + point_cloud_range[0]
-    ys = ys * feature_map_stride * voxel_size[1] + point_cloud_range[1]
+   # assert post_center_limit_range is not None
+   # mask = (final_box_preds[..., :3] >= post_center_limit_range[:3]).all(2)
+   # mask &= (final_box_preds[..., :3] <= post_center_limit_range[3:]).all(2)
 
-    box_part_list = [xs, ys, center_z, dim, angle]
-    if vel is not None:
-        vel = _transpose_and_gather_feat(vel, inds).view(batch_size, K, 2)
-        box_part_list.append(vel)
-
-    final_box_preds = torch.cat((box_part_list), dim=-1)
-    final_scores = scores.view(batch_size, K)
-    final_class_ids = class_ids.view(batch_size, K)
-
-    assert post_center_limit_range is not None
-    mask = (final_box_preds[..., :3] >= post_center_limit_range[:3]).all(2)
-    mask &= (final_box_preds[..., :3] <= post_center_limit_range[3:]).all(2)
-
+    # remove box below the thresh
     if score_thresh is not None:
-        mask &= (final_scores > score_thresh)
+        mask = (final_scores > score_thresh)
+    else:
+        mask = torch.ones(K)
+    cur_boxes = final_box_preds[mask] # cur_mask = mask[k]
+    cur_scores = final_scores[mask]
+    # gathering box information for NMS with iou
+    xmin = cur_boxes[:,0] - cur_boxes[:,3] / 2
+    xmax = cur_boxes[:,0] + cur_boxes[:,3] / 2
+    ymin = cur_boxes[:,1] - cur_boxes[:,4] / 2
+    ymax = cur_boxes[:,1] + cur_boxes[:,4] / 2
+    boxes_candidate = torch.stack([xmin, xmax, ymin, ymax, cur_scores], dim=-1)
+    keep = nms_with_iou(boxes_candidate, nms_thresh)
+    boxes_ind = torch.tensor(keep).cuda().long()
+    boxes_keep = _gather_feat(cur_boxes, boxes_ind)
+    scores_keep = _gather_feat(cur_scores, boxes_ind)
+    ret_pred_dicts = {
+        'pred_boxes': [],
+        'pred_scores': [],
+        'pred_labels': []
+    }
+    ret_pred_dicts['pred_boxes']=boxes_keep
+    ret_pred_dicts['pred_labels']=boxes_keep[:,-1]
+    ret_pred_dicts['pred_scores']=scores_keep
+    #boxes_keep = cur_boxes[keep] 
+        
+   # for k in range(batch_size):
+   #     cur_mask = mask[k]
+   #     cur_boxes = final_box_preds[k, cur_mask]
+   #     cur_scores = final_scores[k, cur_mask]
+   #     cur_labels = final_class_ids[k, cur_mask]
 
-    ret_pred_dicts = []
-    for k in range(batch_size):
-        cur_mask = mask[k]
-        cur_boxes = final_box_preds[k, cur_mask]
-        cur_scores = final_scores[k, cur_mask]
-        cur_labels = final_class_ids[k, cur_mask]
+   #     if circle_nms:
+   #         centers = cur_boxes[:, [0, 1]]
+   #         boxes = torch.cat((centers, scores.view(-1, 1)), dim=1)
+   #         keep = _circle_nms(boxes, min_radius=min_radius, post_max_size=nms_post_max_size)
 
-        if circle_nms:
-            centers = cur_boxes[:, [0, 1]]
-            boxes = torch.cat((centers, scores.view(-1, 1)), dim=1)
-            keep = _circle_nms(boxes, min_radius=min_radius, post_max_size=nms_post_max_size)
+   #         cur_boxes = cur_boxes[keep]
+   #         cur_scores = cur_scores[keep]
+   #         cur_labels = cur_labels[keep]
 
-            cur_boxes = cur_boxes[keep]
-            cur_scores = cur_scores[keep]
-            cur_labels = cur_labels[keep]
-
-        ret_pred_dicts.append({
-            'pred_boxes': cur_boxes,
-            'pred_scores': cur_scores,
-            'pred_labels': cur_labels
-        })
+   #     ret_pred_dicts.append({
+   #         'pred_boxes': cur_boxes,
+   #         'pred_scores': cur_scores,
+   #         'pred_labels': cur_labels
+   #     })
     return ret_pred_dicts

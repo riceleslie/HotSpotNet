@@ -96,7 +96,9 @@ def repeat_eval_ckpt(model, test_loader, args, eval_output_dir, logger, ckpt_dir
 
     while True:
         # check whether there is checkpoint which is not evaluated
-        cur_epoch_id, cur_ckpt = get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args)
+        #cur_epoch_id, cur_ckpt = get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args)
+        cur_epoch_id = 6
+        cur_ckpt = '/data2/mtang/project/OpenPCDet/output/kitti_models/HOS/default/ckpt/checkpoint_epoch_6.pth'
         if cur_epoch_id == -1 or int(float(cur_epoch_id)) < args.start_epoch:
             wait_second = 30
             if cfg.LOCAL_RANK == 0:

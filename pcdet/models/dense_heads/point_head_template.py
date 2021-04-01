@@ -185,7 +185,7 @@ class PointHeadTemplate(nn.Module):
             point_box_preds[None, ...], point_box_labels[None, ...], weights=reg_weights[None, ...]
         )
         point_loss_box = point_loss_box_src.sum()
-
+        
         loss_weights_dict = self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS
         point_loss_box = point_loss_box * loss_weights_dict['point_box_weight']
         if tb_dict is None:

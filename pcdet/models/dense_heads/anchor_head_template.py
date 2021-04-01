@@ -117,7 +117,6 @@ class AnchorHeadTemplate(nn.Module):
         #cls_weights: [1, 211200]
         cls_weights = (negative_cls_weights + 1.0 * positives).float()
         reg_weights = positives.float()
-        pdb.set_trace()
         if self.num_class == 1:
             # class agnostic
             box_cls_labels[positives] = 1
@@ -176,7 +175,6 @@ class AnchorHeadTemplate(nn.Module):
         return dir_cls_targets
 
     def get_box_reg_layer_loss(self):
-        print("\n########## get_box_reg_layer_loss ##########\n")
         # box_preds: [1, 200, 176, 42]
         box_preds = self.forward_ret_dict['box_preds']
         # box_dir_cls_preds: [1, 200, 176, 12]
@@ -255,14 +253,12 @@ class AnchorHeadTemplate(nn.Module):
             batch_size:
             cls_preds: (N, H, W, C1)
             box_preds: (N, H, W, C2)
-            dir_cls_preds: (N, H, W, C3)
 
         Returns:
             batch_cls_preds: (B, num_boxes, num_classes)
             batch_box_preds: (B, num_boxes, 7+C)
 
         """
-        print("generate_predicted_boxes\n")
         if isinstance(self.anchors, list):
             if self.use_multihead:
                 anchors = torch.cat([anchor.permute(3, 4, 0, 1, 2, 5).contiguous().view(-1, anchor.shape[-1])
@@ -273,10 +269,6 @@ class AnchorHeadTemplate(nn.Module):
             anchors = self.anchors
         num_anchors = anchors.view(-1, anchors.shape[-1]).shape[0]
         batch_anchors = anchors.view(1, -1, anchors.shape[-1]).repeat(batch_size, 1, 1)
-        print("anchors.shape[-1]",anchors.shape[-1])
-        print("anchors.view(-1,anchors.shape[-1])",anchors.view(-1,anchors.shape[-1]))
-        print("anchors_num",num_anchors)
-        print("anchors_batch",batch_anchors)
         batch_cls_preds = cls_preds.view(batch_size, num_anchors, -1).float() \
             if not isinstance(cls_preds, list) else cls_preds
         batch_box_preds = box_preds.view(batch_size, num_anchors, -1) if not isinstance(box_preds, list) \

@@ -154,8 +154,6 @@ class ProposalTargetLayer(nn.Module):
                 hard_bg_inds, easy_bg_inds, bg_rois_per_this_image, self.roi_sampler_cfg.HARD_BG_RATIO
             )
         else:
-            print('maxoverlaps:(min=%f, max=%f)' % (max_overlaps.min().item(), max_overlaps.max().item()))
-            print('ERROR: FG=%d, BG=%d' % (fg_num_rois, bg_num_rois))
             raise NotImplementedError
 
         sampled_inds = torch.cat((fg_inds, bg_inds), dim=0)
