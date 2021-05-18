@@ -43,9 +43,7 @@ class HOSHeadTemplate(nn.Module):
         self.forward_ret_dict = {}
         self.build_losses()
 
-    def assign_target_of_single_head(
-            self, num_classes, gt_boxes, feature_map_size, num_max_objs=64
-        ):
+    def assign_target_of_single_head(self, gt_boxes, feature_map_size, num_max_objs):
         """
         Args:
             gt_boxes: (N, 8)
@@ -59,11 +57,10 @@ class HOSHeadTemplate(nn.Module):
         hos_box_labels = gt_boxes.new_zeros((feature_map_size[0] * feature_map_size[1],  gt_boxes.shape[-1] - 1 + 1))
         hos_box_code = gt_boxes.new_zeros((feature_map_size[0] * feature_map_size[1],  gt_boxes.shape[-1] - 1 + 1))
         quadrant_labels = gt_boxes.new_zeros((feature_map_size[0] * feature_map_size[1],  4))
-        
 
         x, y, z = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2]
         l, w, h = gt_boxes[:, 3], gt_boxes[:, 4], gt_boxes[:, 5]
-       
+        
         x_stride = (self.point_cloud_range[3] - self.point_cloud_range[0]) / feature_map_size[0]
         y_stride = (self.point_cloud_range[4] - self.point_cloud_range[1]) / feature_map_size[1]
         z_stride = self.point_cloud_range[5] - self.point_cloud_range[2]
@@ -79,21 +76,18 @@ class HOSHeadTemplate(nn.Module):
         z_shifts = x_shifts.new_tensor(z_stride / 2)
         
         center = torch.cat((x[:, None], y[:, None], l[:, None], w[:, None]), dim=-1)
-        center_int = center.int()
-        for k in range(gt_boxes.shape[0]):
-            if l[k] <= 0 or w[k] <= 0:
-                continue
+        mask = (l > 0) & ( w >0)
+        mask &= (self.point_cloud_range[0] <= x)
+        mask &= (x <= self.point_cloud_range[3])
+        mask &= (self.point_cloud_range[1] <= y)
+        mask &= (y <= self.point_cloud_range[4])
+        
+        for k in range(gt_boxes[mask].shape[0]):
 
-            #if not (0 <= center_int[k][0] <= feature_map_size[0] and 0 <= center_int[k][1] <= feature_map_size[1]):
-             #   continue
-
-            cur_class_id = (gt_boxes[k, -1] - 1).long()
-            
             hotspots, mask, quadrants = centernet_utils.obtain_cls_heatmap(heatmap, center[k], x_shifts, y_shifts, num_max_objs)
             arg_mask = torch.gt(mask.view(-1), 0)
             if arg_mask.sum() == quadrants.shape[0]:
                 quadrant_labels[arg_mask] = quadrants.cuda().float()
-            
             if arg_mask.sum() > 0:    
                 hos_box_code[arg_mask, 0:2] = hotspots.to(hos_box_code.device)
                 hos_box_code[arg_mask, 2] = z_shifts
@@ -106,8 +100,6 @@ class HOSHeadTemplate(nn.Module):
 
     def build_losses(self):
         self.add_module('cls_loss_func', loss_utils.BinaryFocalClassificationLoss())
-        #self.add_module('reg_loss_func', loss_utils.HOSSmoothL1Loss())
-        #self.add_module('spa_loss_func', loss_utils.HOSBCELoss())
         self.reg_loss_func = nn.functional.smooth_l1_loss
         self.spa_loss_func = nn.functional.binary_cross_entropy
 
@@ -145,20 +137,20 @@ class HOSHeadTemplate(nn.Module):
             tb_dict['hm_loss_head_%d' % idx] = (hm_loss.sum() / batch_size).item()
             
             cls_loss += hm_loss/batch_size
-            mask += targets 
+            mask += positives 
         
         # regression loss
         box_preds = box_preds.view(-1,code_size)
         hos_box_labels = hos_box_labels.view(-1,code_size) 
         reg_mask = torch.gt(mask.view(-1), 0)
+        hots_preds = box_preds[reg_mask]
+        hots_labels = hos_box_labels[reg_mask]
+        reg_loss = self.reg_loss_func(hots_preds, hots_labels)
         ## reg_loss is divided by 8
         #reg_weights = box_preds.new_ones(box_preds.shape)
         #reg_normalizer = reg_mask.sum().float()
         #reg_weights /= torch.clamp(reg_normalizer, min=1)
         #hots_weights = reg_weights[reg_mask]
-        hots_preds = box_preds[reg_mask]
-        hots_labels = hos_box_labels[reg_mask]
-        reg_loss = self.reg_loss_func(hots_preds, hots_labels)
         #reg_loss = self.reg_loss_func(hots_preds, hots_labels, hots_weights)
         reg_loss = 8 * reg_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
         tb_dict['loc_loss_head'] =(reg_loss.sum()).item()
@@ -171,6 +163,8 @@ class HOSHeadTemplate(nn.Module):
         hots_quad_preds = spa_preds[reg_mask]
         hots_quad_preds = hots_quad_labels * hots_quad_preds
         
+        hots_quad_preds = torch.clamp(hots_quad_preds, min=0) 
+        hots_quad_preds = torch.clamp(hots_quad_preds, max=1) 
         for idx in range(4):
             spa_loss_sub = self.spa_loss_func(hots_quad_preds[:,idx].squeeze(),hots_quad_labels[:,idx].squeeze())
             spa_loss += spa_loss_sub
@@ -182,7 +176,7 @@ class HOSHeadTemplate(nn.Module):
         tb_dict['rpn_loss'] = loss
         return loss, tb_dict
 
-    def generate_predicted_boxes(self, batch_size, cls_preds, box_preds):
+    def generate_predicted_boxes(self, gt_boxes, batch_size, cls_preds, box_preds):
         """
         Args:
             batch_size: N
@@ -194,52 +188,38 @@ class HOSHeadTemplate(nn.Module):
         """
 
         post_process_cfg = self.model_cfg.POST_PROCESSING
-        ret_dict = [{
-            'pred_boxes': [],
-            'pred_scores': [],
-            'pred_labels': [],
-        }for k in range(batch_size)]
+        
+        # generate centers and cast feature_map to point_cloud field 
+        feature_map_size = self.grid_size[:2] // self.feature_map_stride
+        x_stride = (self.point_cloud_range[3] - self.point_cloud_range[0]) / feature_map_size[0]
+        y_stride = (self.point_cloud_range[4] - self.point_cloud_range[1]) / feature_map_size[1]
+        z_stride = self.point_cloud_range[5] - self.point_cloud_range[2]
+        x_offset = x_stride / 2
+        y_offset = y_stride / 2
+        
+        x_shifts = torch.arange(
+            self.point_cloud_range[0] + x_offset, self.point_cloud_range[3] + 1e-5, step=x_stride, dtype=torch.float32,
+        ).cuda()
+        y_shifts = torch.arange(
+            self.point_cloud_range[1] + y_offset, self.point_cloud_range[4] + 1e-5, step=y_stride, dtype=torch.float32,
+        ).cuda()
+        z_shifts = x_shifts.new_tensor(z_stride / 2)
+        
         box_dict, cls_dict, sco_dict = [], [], [] 
         for idx in range(batch_size):
             batch_hm = cls_preds[idx].sigmoid_()
             batch_box = box_preds[idx]
             final_pred_dicts = centernet_utils.decode_bbox_from_heatmap(
-                heatmap=batch_hm, boxes=batch_box, point_cloud_range=self.point_cloud_range,
-                feature_map_size=batch_hm.shape[0:2],
+                heatmap=batch_hm, boxes=batch_box, x_shifts=x_shifts, 
+                y_shifts=y_shifts, z_shifts=z_shifts,
                 score_thresh=post_process_cfg.SCORE_THRESH,
                 K=post_process_cfg.MAX_OBJ_PER_SAMPLE,
                 nms_thresh=post_process_cfg.NMS_CONFIG.NMS_THRESH
             )
             
-           # batch_box_preds.append(final_pred_dicts['pred_boxes'])
-           # batch_cls_preds.append(final_pred_dicts['pred_labels'])
             box_dict.append(final_pred_dicts['pred_boxes'])
             sco_dict.append(final_pred_dicts['pred_scores'])
             cls_dict.append(final_pred_dicts['pred_labels'])
-            #ret_dict[idx]['pred_boxes'].append(final_pred_dicts['pred_boxes'])
-            #ret_dict[idx]['pred_scores'].append(final_pred_dicts['pred_scores'])
-            #ret_dict[idx]['pred_labels'].append(final_pred_dicts['pred_labels'])
-           # for k, final_dict in enumerate(final_pred_dicts):
-           #     final_dict['pred_labels'] = self.class_id_mapping_each_head[idx][final_dict['pred_labels'].long()]
-           #     if post_process_cfg.NMS_CONFIG.NMS_TYPE != 'circle_nms':
-           #         selected, selected_scores = model_nms_utils.class_agnostic_nms(
-           #             box_scores=final_dict['pred_scores'], box_preds=final_dict['pred_boxes'],
-           #             nms_config=post_process_cfg.NMS_CONFIG,
-           #             score_thresh=None
-           #         )
-
-           #         final_dict['pred_boxes'] = final_dict['pred_boxes'][selected]
-           #         final_dict['pred_scores'] = selected_scores
-           #         final_dict['pred_labels'] = final_dict['pred_labels'][selected]
-
-           #     ret_dict[k]['pred_boxes'].append(final_dict['pred_boxes'])
-           #     ret_dict[k]['pred_scores'].append(final_dict['pred_scores'])
-           #     ret_dict[k]['pred_labels'].append(final_dict['pred_labels'])
-
-       # for k in range(batch_size):
-       #     ret_dict[k]['pred_boxes'] = torch.cat(ret_dict[k]['pred_boxes'], dim=0)
-       #     ret_dict[k]['pred_scores'] = torch.cat(ret_dict[k]['pred_scores'], dim=0)
-       #     ret_dict[k]['pred_labels'] = torch.cat(ret_dict[k]['pred_labels'], dim=0)
 
         return box_dict, cls_dict, sco_dict
 

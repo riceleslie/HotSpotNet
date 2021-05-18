@@ -98,12 +98,12 @@ class VoxelBackBone8x(nn.Module):
             block(64, 64, 3, norm_fn=norm_fn, padding=1, indice_key='subm3'),
         )
 
-        self.conv4 = spconv.SparseSequential(
-            # [400, 352, 11] <- [200, 176, 5]
-            block(64, 64, 3, norm_fn=norm_fn, stride=2, padding=(0, 1, 1), indice_key='spconv4', conv_type='spconv'),
-            block(64, 64, 3, norm_fn=norm_fn, padding=1, indice_key='subm4'),
-            block(64, 64, 3, norm_fn=norm_fn, padding=1, indice_key='subm4'),
-        )
+     #   self.conv4 = spconv.SparseSequential(
+     #       # [400, 352, 11] <- [200, 176, 5]
+     #       block(64, 64, 3, norm_fn=norm_fn, stride=2, padding=(0, 1, 1), indice_key='spconv4', conv_type='spconv'),
+     #       block(64, 64, 3, norm_fn=norm_fn, padding=1, indice_key='subm4'),
+     #       block(64, 64, 3, norm_fn=norm_fn, padding=1, indice_key='subm4'),
+     #   )
 
         last_pad = 0
         last_pad = self.model_cfg.get('last_pad', last_pad)
@@ -141,7 +141,8 @@ class VoxelBackBone8x(nn.Module):
         x_conv1 = self.conv1(x)
         x_conv2 = self.conv2(x_conv1)
         x_conv3 = self.conv3(x_conv2)
-        x_conv4 = self.conv4(x_conv3)
+     #   x_conv4 = self.conv4(x_conv3)
+        x_conv4 = x_conv3
 
         # for detection head
         # [200, 176, 5] -> [200, 176, 2]
@@ -149,7 +150,7 @@ class VoxelBackBone8x(nn.Module):
 
         batch_dict.update({
             'encoded_spconv_tensor': out,
-            'encoded_spconv_tensor_stride': 8
+            'encoded_spconv_tensor_stride': 4
         })
         batch_dict.update({
             'multi_scale_3d_features': {

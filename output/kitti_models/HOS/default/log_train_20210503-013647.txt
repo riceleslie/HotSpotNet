@@ -1,0 +1,357 @@
+2021-05-03 01:36:47,813   INFO  **********************Start logging**********************
+2021-05-03 01:36:47,814   INFO  CUDA_VISIBLE_DEVICES=8,9,10,11,12,13,14,15
+2021-05-03 01:36:47,814   INFO  total_batch_size: 16
+2021-05-03 01:36:47,814   INFO  cfg_file         cfgs/kitti_models/HOS.yaml
+2021-05-03 01:36:47,814   INFO  batch_size       2
+2021-05-03 01:36:47,814   INFO  epochs           100
+2021-05-03 01:36:47,814   INFO  workers          8
+2021-05-03 01:36:47,814   INFO  extra_tag        default
+2021-05-03 01:36:47,814   INFO  ckpt             None
+2021-05-03 01:36:47,814   INFO  pretrained_model None
+2021-05-03 01:36:47,815   INFO  launcher         pytorch
+2021-05-03 01:36:47,815   INFO  tcp_port         18888
+2021-05-03 01:36:47,815   INFO  sync_bn          False
+2021-05-03 01:36:47,815   INFO  fix_random_seed  False
+2021-05-03 01:36:47,815   INFO  ckpt_save_interval 1
+2021-05-03 01:36:47,815   INFO  local_rank       0
+2021-05-03 01:36:47,815   INFO  max_ckpt_save_num 30
+2021-05-03 01:36:47,815   INFO  merge_all_iters_to_one_epoch False
+2021-05-03 01:36:47,815   INFO  set_cfgs         None
+2021-05-03 01:36:47,815   INFO  max_waiting_mins 0
+2021-05-03 01:36:47,815   INFO  start_epoch      0
+2021-05-03 01:36:47,816   INFO  save_to_file     False
+2021-05-03 01:36:47,816   INFO  cfg.ROOT_DIR: /data2/mtang/project/OpenPCDet
+2021-05-03 01:36:47,816   INFO  cfg.LOCAL_RANK: 0
+2021-05-03 01:36:47,816   INFO  cfg.CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
+2021-05-03 01:36:47,816   INFO  
+cfg.DATA_CONFIG = edict()
+2021-05-03 01:36:47,816   INFO  cfg.DATA_CONFIG.DATASET: KittiDataset
+2021-05-03 01:36:47,816   INFO  cfg.DATA_CONFIG.DATA_PATH: ../data/kitti
+2021-05-03 01:36:47,816   INFO  cfg.DATA_CONFIG.POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+2021-05-03 01:36:47,816   INFO  
+cfg.DATA_CONFIG.DATA_SPLIT = edict()
+2021-05-03 01:36:47,816   INFO  cfg.DATA_CONFIG.DATA_SPLIT.train: train
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.DATA_SPLIT.test: val
+2021-05-03 01:36:47,817   INFO  
+cfg.DATA_CONFIG.INFO_PATH = edict()
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.INFO_PATH.train: ['kitti_infos_train.pkl']
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.INFO_PATH.test: ['kitti_infos_val.pkl']
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.FOV_POINTS_ONLY: True
+2021-05-03 01:36:47,817   INFO  
+cfg.DATA_CONFIG.DATA_AUGMENTOR = edict()
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.DISABLE_AUG_LIST: ['placeholder']
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.AUG_CONFIG_LIST: [{'NAME': 'gt_sampling', 'USE_ROAD_PLANE': True, 'DB_INFO_PATH': ['kitti_dbinfos_train.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:20', 'Pedestrian:15', 'Cyclist:15'], 'NUM_POINT_FEATURES': 4, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, 0.0], 'LIMIT_WHOLE_SCENE': True}, {'NAME': 'random_world_flip', 'ALONG_AXIS_LIST': ['x']}, {'NAME': 'random_world_rotation', 'WORLD_ROT_ANGLE': [-0.78539816, 0.78539816]}, {'NAME': 'random_world_scaling', 'WORLD_SCALE_RANGE': [0.95, 1.05]}]
+2021-05-03 01:36:47,817   INFO  
+cfg.DATA_CONFIG.POINT_FEATURE_ENCODING = edict()
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.encoding_type: absolute_coordinates_encoding
+2021-05-03 01:36:47,817   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.used_feature_list: ['x', 'y', 'z', 'intensity']
+2021-05-03 01:36:47,818   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.src_feature_list: ['x', 'y', 'z', 'intensity']
+2021-05-03 01:36:47,818   INFO  cfg.DATA_CONFIG.DATA_PROCESSOR: [{'NAME': 'mask_points_and_boxes_outside_range', 'REMOVE_OUTSIDE_BOXES': True}, {'NAME': 'shuffle_points', 'SHUFFLE_ENABLED': {'train': True, 'test': False}}, {'NAME': 'transform_points_to_voxels', 'VOXEL_SIZE': [0.05, 0.05, 0.1], 'MAX_POINTS_PER_VOXEL': 5, 'MAX_NUMBER_OF_VOXELS': {'train': 16000, 'test': 40000}}]
+2021-05-03 01:36:47,818   INFO  cfg.DATA_CONFIG._BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
+2021-05-03 01:36:47,818   INFO  
+cfg.MODEL = edict()
+2021-05-03 01:36:47,818   INFO  cfg.MODEL.NAME: HOSNet
+2021-05-03 01:36:47,818   INFO  
+cfg.MODEL.VFE = edict()
+2021-05-03 01:36:47,818   INFO  cfg.MODEL.VFE.NAME: MeanVFE
+2021-05-03 01:36:47,818   INFO  
+cfg.MODEL.BACKBONE_3D = edict()
+2021-05-03 01:36:47,818   INFO  cfg.MODEL.BACKBONE_3D.NAME: VoxelBackBone8x
+2021-05-03 01:36:47,818   INFO  
+cfg.MODEL.MAP_TO_BEV = edict()
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.MAP_TO_BEV.NAME: HeightCompression
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.MAP_TO_BEV.NUM_BEV_FEATURES: 640
+2021-05-03 01:36:47,819   INFO  
+cfg.MODEL.BACKBONE_2D = edict()
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.NAME: BaseBEVBackbone
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.LAYER_NUMS: [5, 5]
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.LAYER_STRIDES: [1, 2]
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.NUM_FILTERS: [128, 256]
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.UPSAMPLE_STRIDES: [1, 2]
+2021-05-03 01:36:47,819   INFO  cfg.MODEL.BACKBONE_2D.NUM_UPSAMPLE_FILTERS: [256, 256]
+2021-05-03 01:36:47,820   INFO  
+cfg.MODEL.DENSE_HEAD = edict()
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.NAME: HOSHead
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.CLASS_AGNOSTIC: False
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.CLASS_NAMES_EACH_HEAD: [['Car'], ['Pedestrian'], ['Cyclist']]
+2021-05-03 01:36:47,820   INFO  
+cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG = edict()
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.BOX_CODER: HOSResidualCoder
+2021-05-03 01:36:47,820   INFO  
+cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.BOX_CODER_CONFIG = edict()
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.BOX_CODER_CONFIG.code_size: 8
+2021-05-03 01:36:47,820   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.FEATURE_MAP_STRIDE: 4
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.NUM_MAX_OBJS: 256
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.QUADRANT: 4
+2021-05-03 01:36:47,821   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG = edict()
+2021-05-03 01:36:47,821   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS = edict()
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.cls_weight: 1.0
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.loc_weight: 1.0
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.spa_weight: 1.0
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.code_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+2021-05-03 01:36:47,821   INFO  
+cfg.MODEL.DENSE_HEAD.POST_PROCESSING = edict()
+2021-05-03 01:36:47,821   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.SCORE_THRESH: 0.3
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.MAX_OBJ_PER_SAMPLE: 120
+2021-05-03 01:36:47,822   INFO  
+cfg.MODEL.DENSE_HEAD.POST_PROCESSING.NMS_CONFIG = edict()
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.NMS_CONFIG.NMS_TYPE: nms_gpu
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.NMS_CONFIG.NMS_THRESH: 0.01
+2021-05-03 01:36:47,822   INFO  
+cfg.MODEL.POST_PROCESSING = edict()
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.POST_PROCESSING.SCORE_THRESH: 0.3
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.POST_PROCESSING.OUTPUT_RAW_SCORE: False
+2021-05-03 01:36:47,822   INFO  cfg.MODEL.POST_PROCESSING.EVAL_METRIC: kitti
+2021-05-03 01:36:47,822   INFO  
+cfg.MODEL.POST_PROCESSING.NMS_CONFIG = edict()
+2021-05-03 01:36:47,823   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.MULTI_CLASSES_NMS: False
+2021-05-03 01:36:47,823   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_TYPE: nms_gpu
+2021-05-03 01:36:47,823   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_THRESH: 0.01
+2021-05-03 01:36:47,823   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_PRE_MAXSIZE: 4096
+2021-05-03 01:36:47,823   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_POST_MAXSIZE: 500
+2021-05-03 01:36:47,823   INFO  
+cfg.OPTIMIZATION = edict()
+2021-05-03 01:36:47,823   INFO  cfg.OPTIMIZATION.BATCH_SIZE_PER_GPU: 2
+2021-05-03 01:36:47,823   INFO  cfg.OPTIMIZATION.NUM_EPOCHS: 100
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.OPTIMIZER: adam_onecycle
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.LR: 0.003
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.WEIGHT_DECAY: 0.01
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.MOMENTUM: 0.9
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.MOMS: [0.95, 0.85]
+2021-05-03 01:36:47,824   INFO  cfg.OPTIMIZATION.PCT_START: 0.4
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.DIV_FACTOR: 10
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.DECAY_STEP_LIST: [35, 45]
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.LR_DECAY: 0.1
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.LR_CLIP: 1e-07
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.LR_WARMUP: False
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.WARMUP_EPOCH: 1
+2021-05-03 01:36:47,825   INFO  cfg.OPTIMIZATION.GRAD_NORM_CLIP: 10
+2021-05-03 01:36:47,825   INFO  cfg.TAG: HOS
+2021-05-03 01:36:47,825   INFO  cfg.EXP_GROUP_PATH: kitti_models
+2021-05-03 01:36:48,349   INFO  Database filter by min points Car: 14357 => 13532
+2021-05-03 01:36:48,351   INFO  Database filter by min points Pedestrian: 2207 => 2168
+2021-05-03 01:36:48,352   INFO  Database filter by min points Cyclist: 734 => 705
+2021-05-03 01:36:48,409   INFO  Database filter by difficulty Car: 13532 => 10759
+2021-05-03 01:36:48,418   INFO  Database filter by difficulty Pedestrian: 2168 => 2075
+2021-05-03 01:36:48,421   INFO  Database filter by difficulty Cyclist: 705 => 581
+2021-05-03 01:36:48,645   INFO  Loading KITTI dataset
+2021-05-03 01:36:48,950   INFO  Total samples for KITTI dataset: 3712
+2021-05-03 01:37:09,638   INFO  DistributedDataParallel(
+  (module): HOSNet(
+    (vfe): MeanVFE()
+    (backbone_3d): VoxelBackBone8x(
+      (conv_input): SparseSequential(
+        (0): SubMConv3d()
+        (1): BatchNorm1d(16, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU()
+      )
+      (conv1): SparseSequential(
+        (0): SparseSequential(
+          (0): SubMConv3d()
+          (1): BatchNorm1d(16, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+      )
+      (conv2): SparseSequential(
+        (0): SparseSequential(
+          (0): SparseConv3d()
+          (1): BatchNorm1d(32, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (1): SparseSequential(
+          (0): SubMConv3d()
+          (1): BatchNorm1d(32, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (2): SparseSequential(
+          (0): SubMConv3d()
+          (1): BatchNorm1d(32, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+      )
+      (conv3): SparseSequential(
+        (0): SparseSequential(
+          (0): SparseConv3d()
+          (1): BatchNorm1d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (1): SparseSequential(
+          (0): SubMConv3d()
+          (1): BatchNorm1d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (2): SparseSequential(
+          (0): SubMConv3d()
+          (1): BatchNorm1d(64, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+      )
+      (conv_out): SparseSequential(
+        (0): SparseConv3d()
+        (1): BatchNorm1d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU()
+      )
+    )
+    (map_to_bev_module): HeightCompression()
+    (pfe): None
+    (backbone_2d): BaseBEVBackbone(
+      (blocks): ModuleList(
+        (0): Sequential(
+          (0): ZeroPad2d(padding=(1, 1, 1, 1), value=0.0)
+          (1): Conv2d(640, 128, kernel_size=(3, 3), stride=(1, 1), bias=False)
+          (2): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (3): ReLU()
+          (4): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (5): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (6): ReLU()
+          (7): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (8): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (9): ReLU()
+          (10): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (11): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (12): ReLU()
+          (13): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (14): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (15): ReLU()
+          (16): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (17): BatchNorm2d(128, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (18): ReLU()
+        )
+        (1): Sequential(
+          (0): ZeroPad2d(padding=(1, 1, 1, 1), value=0.0)
+          (1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), bias=False)
+          (2): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (3): ReLU()
+          (4): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (5): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (6): ReLU()
+          (7): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (8): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (9): ReLU()
+          (10): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (11): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (12): ReLU()
+          (13): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (14): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (15): ReLU()
+          (16): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (17): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (18): ReLU()
+        )
+      )
+      (deblocks): ModuleList(
+        (0): Sequential(
+          (0): ConvTranspose2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (1): Sequential(
+          (0): ConvTranspose2d(256, 256, kernel_size=(2, 2), stride=(2, 2), bias=False)
+          (1): BatchNorm2d(256, eps=0.001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+      )
+    )
+    (dense_head): HOSHead(
+      (cls_loss_func): BinaryFocalClassificationLoss()
+      (conv_shared): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv_cls): Conv2d(512, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv_box): Conv2d(512, 8, kernel_size=(1, 1), stride=(1, 1))
+      (conv_spa): Sequential(
+        (0): Conv2d(512, 4, kernel_size=(1, 1), stride=(1, 1))
+        (1): Softmax()
+      )
+    )
+    (point_head): None
+    (roi_head): None
+  )
+)
+2021-05-03 01:37:09,641   INFO  **********************Start training kitti_models/HOS(default)**********************
+2021-05-09 13:19:28,091   INFO  **********************End training kitti_models/HOS(default)**********************
+
+
+
+2021-05-09 13:19:28,128   INFO  **********************Start evaluation kitti_models/HOS(default)**********************
+2021-05-09 13:19:28,293   INFO  Loading KITTI dataset
+2021-05-09 13:19:28,793   INFO  Total samples for KITTI dataset: 3769
+2021-05-09 13:19:28,812   INFO  ==> Loading parameters from checkpoint /data2/mtang/project/OpenPCDet/output/kitti_models/HOS/default/ckpt/checkpoint_epoch_90.pth to CPU
+2021-05-09 13:19:28,915   INFO  ==> Checkpoint trained from version: pcdet+0.3.0+5396f34+pyc79f048
+2021-05-09 13:19:29,416   INFO  ==> Done (loaded 147/147)
+2021-05-09 13:19:29,420   INFO  *************** EPOCH 90 EVALUATION *****************
+2021-05-09 13:32:24,205   INFO  *************** Performance of EPOCH 90 *****************
+2021-05-09 13:32:24,206   INFO  Generate label finished(sec_per_example: 0.2056 second).
+2021-05-09 13:32:24,206   INFO  recall_roi_0.3: 0.000000
+2021-05-09 13:32:24,206   INFO  recall_rcnn_0.3: 0.726151
+2021-05-09 13:32:24,206   INFO  recall_roi_0.5: 0.000000
+2021-05-09 13:32:24,206   INFO  recall_rcnn_0.5: 0.694749
+2021-05-09 13:32:24,206   INFO  recall_roi_0.7: 0.000000
+2021-05-09 13:32:24,206   INFO  recall_rcnn_0.7: 0.532340
+2021-05-09 13:32:24,214   INFO  Average predicted number of objects(3769 samples): 7.101
+2021-05-09 13:33:43,344   INFO  Car AP@0.70, 0.70, 0.70:
+bbox AP:90.2993, 80.6905, 71.8604
+bev  AP:89.0319, 79.7071, 71.1163
+3d   AP:85.1770, 75.9597, 68.0136
+aos  AP:90.28, 80.63, 71.81
+Car AP_R40@0.70, 0.70, 0.70:
+bbox AP:96.4401, 85.7110, 76.1030
+bev  AP:90.3977, 82.2606, 75.1252
+3d   AP:84.9250, 74.7548, 66.0086
+aos  AP:96.41, 85.64, 76.04
+Car AP@0.70, 0.50, 0.50:
+bbox AP:90.2993, 80.6905, 71.8604
+bev  AP:90.3642, 88.2191, 79.6441
+3d   AP:90.3571, 88.4372, 79.8331
+aos  AP:90.28, 80.63, 71.81
+Car AP_R40@0.70, 0.50, 0.50:
+bbox AP:96.4401, 85.7110, 76.1030
+bev  AP:96.6060, 88.1804, 78.5699
+3d   AP:96.5807, 88.1942, 78.5853
+aos  AP:96.41, 85.64, 76.04
+Pedestrian AP@0.50, 0.50, 0.50:
+bbox AP:68.1436, 62.8203, 59.2649
+bev  AP:62.6504, 56.6650, 51.0713
+3d   AP:57.4869, 52.8341, 47.8186
+aos  AP:66.27, 60.78, 56.82
+Pedestrian AP_R40@0.50, 0.50, 0.50:
+bbox AP:68.4932, 63.0703, 57.7938
+bev  AP:62.2726, 55.9357, 50.6824
+3d   AP:57.6248, 50.9933, 45.5495
+aos  AP:66.42, 60.79, 55.23
+Pedestrian AP@0.50, 0.25, 0.25:
+bbox AP:68.1436, 62.8203, 59.2649
+bev  AP:73.8263, 68.2318, 61.9942
+3d   AP:73.9469, 68.1738, 61.9805
+aos  AP:66.27, 60.78, 56.82
+Pedestrian AP_R40@0.50, 0.25, 0.25:
+bbox AP:68.4932, 63.0703, 57.7938
+bev  AP:74.2762, 68.7373, 63.1447
+3d   AP:74.3558, 68.6454, 63.1216
+aos  AP:66.42, 60.79, 55.23
+Cyclist AP@0.50, 0.50, 0.50:
+bbox AP:87.6144, 67.6113, 64.7039
+bev  AP:83.6152, 62.6235, 56.7207
+3d   AP:80.6754, 59.8048, 54.8936
+aos  AP:87.38, 67.32, 64.40
+Cyclist AP_R40@0.50, 0.50, 0.50:
+bbox AP:87.1970, 68.7713, 64.2725
+bev  AP:82.9552, 61.8555, 57.4890
+3d   AP:79.6989, 58.1914, 53.9265
+aos  AP:86.98, 68.44, 63.96
+Cyclist AP@0.50, 0.25, 0.25:
+bbox AP:87.6144, 67.6113, 64.7039
+bev  AP:85.9395, 64.6535, 62.2129
+3d   AP:85.9395, 64.6535, 62.2129
+aos  AP:87.38, 67.32, 64.40
+Cyclist AP_R40@0.50, 0.25, 0.25:
+bbox AP:87.1970, 68.7713, 64.2725
+bev  AP:87.3025, 65.1774, 61.8708
+3d   AP:87.3025, 65.1774, 61.8708
+aos  AP:86.98, 68.44, 63.96
+
+2021-05-09 13:33:43,359   INFO  Result is save to /data2/mtang/project/OpenPCDet/output/kitti_models/HOS/default/eval/eval_with_train/epoch_90/val
+2021-05-09 13:33:43,359   INFO  ****************Evaluation done.*****************
+2021-05-09 13:33:43,415   INFO  Epoch 90 has been evaluated
+2021-05-09 13:33:43,416   INFO  **********************End evaluation kitti_models/HOS(default)**********************

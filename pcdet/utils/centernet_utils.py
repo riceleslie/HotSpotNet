@@ -17,7 +17,7 @@ def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):
     top = x - l / 2
     left = y - w / 2
     right = y + w / 2
-    MAX = num_max_objs / l / w
+    max_num = num_max_objs / l / w
 
     masks_x = ((x_shifts > top) & (x_shifts < bottom))
     masks_y = ((y_shifts > left) & (y_shifts < right))
@@ -31,11 +31,12 @@ def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):
     spots_y = y_shifts[masks_y]
     spots = torch.Tensor(list(product(spots_x, spots_y)))
     
-    if num > MAX.cpu().long():
+    max_num_int = max_num.int()
+    if num > max_num_int.cpu().long():
         spots_dist = torch.pow((spots[:,0]-x),2) + torch.pow((spots[:,1]-y),2)
         value, ind = spots_dist.sort()
-        spots_dist[ind[0:num_max_objs]] = 1
-        spots_dist[ind[num_max_objs:-1]] = -1
+        spots_dist[ind[0:max_num_int]] = 1
+        spots_dist[ind[max_num_int:-1]] = -1
         spots_dist[ind[-1]] = -1
         hotspots = spots[torch.gt(spots_dist,0)]
         heatmap[spots_mask] = spots_dist.to(heatmap.device)
@@ -53,7 +54,7 @@ def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):
         quadrant = torch.stack([quadrant_1, quadrant_2, quadrant_3, quadrant_4])
         quadrant = quadrant.permute(1,0)
     else:
-        quadrant = torch.zeros(num_max_objs,4)
+        quadrant = torch.zeros(max_num_int,4)
     
     return hotspots, mask, quadrant
             
@@ -195,56 +196,35 @@ def _transpose_and_gather_feat(feat, ind):
 def _topk(scores, K=40):
     height, width, num_class = scores.size()
 
-    topk_scores, topk_inds = torch.topk(scores.flatten(0, 1),K,dim=0)
-    topk_inds = topk_inds % (height * width)
-    topk_xs = (topk_inds // width).float()
-    topk_ys = (topk_inds % width).int().float()
-
-    topk_score, topk_ind = torch.topk(topk_scores.view(-1), K)
-    topk_classes = (topk_ind // K).int()
-    topk_inds = _gather_feat(topk_inds.view(-1, 1), topk_ind).view(K)
-    topk_ys = _gather_feat(topk_ys.view(-1, 1), topk_ind).view(K)
-    topk_xs = _gather_feat(topk_xs.view(-1, 1), topk_ind).view(K)
-
-    return topk_score, topk_inds, topk_classes, topk_ys, topk_xs
+    topk_scores, topk_inds = torch.max(scores.flatten(0, 1),dim=-1)
+    topk_score, topk_ind = torch.topk(topk_scores,K,dim=0)
+    topk_xs = (topk_ind // width).float()
+    topk_ys = (topk_ind % width).int().float()
+    class_id = _gather_feat(topk_inds,topk_ind)
+    return topk_score, topk_ind, topk_ys, topk_xs, class_id
 
 
-def decode_bbox_from_heatmap(heatmap, boxes, point_cloud_range, feature_map_size,
+def decode_bbox_from_heatmap(heatmap, boxes, x_shifts, y_shifts, z_shifts,
                                 score_thresh=0.3, K=100, nms_thresh=0.01):
     
-    scores, inds, class_ids, ys, xs = _topk(heatmap, K=K)
+    scores, inds, ys, xs, class_id = _topk(heatmap, K=K)
     distance = boxes[:,0:2]
     center_z = boxes[:,2]
     sides = boxes[:,3:6]
     rot_cos = boxes[:,6]
     rot_sin = boxes[:,7]
-    #pdb.set_trace()
+    
     # obtain top K predicted box information
     distance = _gather_feat(distance, inds).view(K,2)
     center_z = _gather_feat(center_z, inds).view(K,1)
     sides = _gather_feat(sides, inds).view(K,3)
     rot_sin = _gather_feat(rot_sin, inds).view(K,1) 
     rot_cos = _gather_feat(rot_cos, inds).view(K,1) 
-    #pdb.set_trace()
-    # generate centers and cast feature_map to point_cloud field 
-    x_stride = (point_cloud_range[3] - point_cloud_range[0]) / feature_map_size[0]
-    y_stride = (point_cloud_range[4] - point_cloud_range[1]) / feature_map_size[1]
-    z_stride = point_cloud_range[5] - point_cloud_range[2]
-    x_offset = x_stride / 2
-    y_offset = y_stride / 2
     
-    x_shifts = torch.arange(
-        point_cloud_range[0] + x_offset, point_cloud_range[3] + 1e-5, step=x_stride, dtype=torch.float32,
-    ).cuda()
-    y_shifts = torch.arange(
-        point_cloud_range[1] + y_offset, point_cloud_range[4] + 1e-5, step=y_stride, dtype=torch.float32,
-    ).cuda()
-    z_shifts = x_shifts.new_tensor(z_stride / 2)
     
     # obtain top K nuerons' centers of point_cloud field    
     xs = _gather_feat(x_shifts, xs.long())
     ys = _gather_feat(y_shifts, ys.long())
-    #pdb.set_trace()
     
     # obatain bounding box information
     angle = torch.atan2(rot_sin, rot_cos)
@@ -256,59 +236,52 @@ def decode_bbox_from_heatmap(heatmap, boxes, point_cloud_range, feature_map_size
     side_h = torch.exp(sides[:,2])
     boxes_list = [center_x, center_y, center_z.squeeze(-1), side_l, side_w, side_h]
     boxes_list.append(angle.squeeze(-1))
-    boxes_list.append(class_ids.float())
-    final_box_preds = torch.stack(boxes_list, dim=-1)
-    final_scores = scores.view(K)
+    #boxes_list.append(class_ids.float())
+    cur_boxes = torch.stack(boxes_list, dim=-1)
+    cur_scores = scores.view(K)
 
-   # assert post_center_limit_range is not None
-   # mask = (final_box_preds[..., :3] >= post_center_limit_range[:3]).all(2)
-   # mask &= (final_box_preds[..., :3] <= post_center_limit_range[3:]).all(2)
-
-    # remove box below the thresh
-    if score_thresh is not None:
-        mask = (final_scores > score_thresh)
-    else:
-        mask = torch.ones(K)
-    cur_boxes = final_box_preds[mask] # cur_mask = mask[k]
-    cur_scores = final_scores[mask]
+    
     # gathering box information for NMS with iou
     xmin = cur_boxes[:,0] - cur_boxes[:,3] / 2
     xmax = cur_boxes[:,0] + cur_boxes[:,3] / 2
     ymin = cur_boxes[:,1] - cur_boxes[:,4] / 2
     ymax = cur_boxes[:,1] + cur_boxes[:,4] / 2
-    boxes_candidate = torch.stack([xmin, xmax, ymin, ymax, cur_scores], dim=-1)
+    boxes_nms = torch.stack([xmin, xmax, ymin, ymax, cur_scores, class_id.float()], dim=-1)
+    boxes_candidate = boxes_nms
+
     keep = nms_with_iou(boxes_candidate, nms_thresh)
-    boxes_ind = torch.tensor(keep).cuda().long()
-    boxes_keep = _gather_feat(cur_boxes, boxes_ind)
-    scores_keep = _gather_feat(cur_scores, boxes_ind)
+    boxes_keep_mask = torch.tensor(keep).cuda().long()
+    boxes_keep = _gather_feat(cur_boxes, boxes_keep_mask)
+    scores_keep = _gather_feat(cur_scores, boxes_keep_mask)
+    labels_keep = _gather_feat(class_id, boxes_keep_mask)
+
+  #  boxes_keep_list,scores_keep_list,labels_keep_list = [],[],[]
+  #  for i in range (3):
+  #      nms_mask = boxes_nms[:,-1] == i
+  #      boxes_candidate = boxes_nms[nms_mask]
+  #      keep = nms_with_iou(boxes_candidate, nms_thresh)
+  #      boxes_keep_mask = torch.tensor(keep).cuda().long()
+  #      boxes_keep_list.append(_gather_feat(cur_boxes[nms_mask], boxes_keep_mask))
+  #      scores_keep_list.append(_gather_feat(cur_scores[nms_mask], boxes_keep_mask))
+  #      labels_keep_list.append(_gather_feat(class_id[nms_mask], boxes_keep_mask)) 
+  #  
+  #  # remove box below the thresh
+  #  boxes_keep = torch.cat(boxes_keep_list, dim=0) 
+  #  scores_keep = torch.cat(scores_keep_list, dim=0) 
+  #  labels_keep = torch.cat(labels_keep_list, dim=0) 
+    if score_thresh is not None:
+        mask = (scores_keep > score_thresh)
+    else:
+        mask = torch.ones(labels_keep.shape(0))
+    final_boxes = boxes_keep[mask] # cur_mask = mask[k]
+    final_scores = scores_keep[mask]
+    final_labels = labels_keep[mask]
     ret_pred_dicts = {
         'pred_boxes': [],
         'pred_scores': [],
         'pred_labels': []
     }
-    ret_pred_dicts['pred_boxes']=boxes_keep
-    ret_pred_dicts['pred_labels']=boxes_keep[:,-1]
-    ret_pred_dicts['pred_scores']=scores_keep
-    #boxes_keep = cur_boxes[keep] 
-        
-   # for k in range(batch_size):
-   #     cur_mask = mask[k]
-   #     cur_boxes = final_box_preds[k, cur_mask]
-   #     cur_scores = final_scores[k, cur_mask]
-   #     cur_labels = final_class_ids[k, cur_mask]
-
-   #     if circle_nms:
-   #         centers = cur_boxes[:, [0, 1]]
-   #         boxes = torch.cat((centers, scores.view(-1, 1)), dim=1)
-   #         keep = _circle_nms(boxes, min_radius=min_radius, post_max_size=nms_post_max_size)
-
-   #         cur_boxes = cur_boxes[keep]
-   #         cur_scores = cur_scores[keep]
-   #         cur_labels = cur_labels[keep]
-
-   #     ret_pred_dicts.append({
-   #         'pred_boxes': cur_boxes,
-   #         'pred_scores': cur_scores,
-   #         'pred_labels': cur_labels
-   #     })
+    ret_pred_dicts['pred_boxes']=final_boxes
+    ret_pred_dicts['pred_labels']=final_labels
+    ret_pred_dicts['pred_scores']=final_scores
     return ret_pred_dicts

@@ -325,8 +325,10 @@ class KittiDataset(DatasetTemplate):
 
         eval_det_annos = copy.deepcopy(det_annos)
         eval_gt_annos = [copy.deepcopy(info['annos']) for info in self.kitti_infos]
+        #gt_list = []
+        #gt_list.append(eval_gt_annos[0])
         ap_result_str, ap_dict = kitti_eval.get_official_eval_result(eval_gt_annos, eval_det_annos, class_names)
-
+        #ap_result_str, ap_dict = kitti_eval.get_official_eval_result(gt_list, eval_det_annos, class_names)
         return ap_result_str, ap_dict
 
     def __len__(self):

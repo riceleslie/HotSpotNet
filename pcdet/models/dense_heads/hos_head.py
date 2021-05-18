@@ -18,13 +18,10 @@ class HOSHead(HOSHeadTemplate):
             kernel_size=3,
             padding=1
         )
-        self.conv_cls = nn.Sequential(
-            nn.Conv2d(
+        self.conv_cls = nn.Conv2d(
             input_channels, self.num_class,
             kernel_size=3,
-            bias=-np.log((1 - pi) / pi),
             padding=1
-            ),
         )
         self.conv_box = nn.Conv2d(
             input_channels, self.box_coder.code_size,
@@ -42,7 +39,7 @@ class HOSHead(HOSHeadTemplate):
     def init_weights(self):
         nn.init.normal_(self.conv_box.weight, mean=0, std=0.001)
         nn.init.normal_(self.conv_shared.weight, mean=0, std=0.001)
-        nn.init.normal_(self.conv_cls[0].weight, mean=0, std=0.001)
+        nn.init.normal_(self.conv_cls.weight, mean=0, std=0.001)
         nn.init.normal_(self.conv_spa[0].weight, mean=0, std=0.001)
 
     def assign_targets(self, gt_boxes):
@@ -77,32 +74,32 @@ class HOSHead(HOSHeadTemplate):
                     if name not in cur_class_names:
                         continue
                     temp_box = cur_gt_boxes[idx]
-                    temp_box[-1] = cur_class_names.index(name) + 1
+                    temp_box[-1] = self.class_names_each_head.index([name])
                     gt_boxes_single_head.append(temp_box[None, :])
 
                 if len(gt_boxes_single_head) == 0:
                     gt_boxes_single_head = cur_gt_boxes[:0, :]
                 else:
                     gt_boxes_single_head = torch.cat(gt_boxes_single_head, dim=0)
-
                 heatmap, hos_box_label, quadrant_label  = self.assign_target_of_single_head(
-                    num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head,
-                    feature_map_size=feature_map_size, num_max_objs=self.num_max_objs)
+                    gt_boxes=gt_boxes_single_head, feature_map_size=feature_map_size,
+                    num_max_objs=self.num_max_objs)
 
                 heatmap_list.append(heatmap)
                 hos_box_list.append(hos_box_label)
                 quadrant_list.append(quadrant_label)
-                #np.save(f'./visual/gt_box_%s.npy' % class_idx, gt_boxes_single_head.cpu().numpy())
-                #np.save(f'./visual/heatmap_%s.npy' % class_idx, heatmap.cpu().numpy())
-                #np.save(f'./visual/quadrant_%s.npy' % class_idx, quadrant_label.cpu().numpy())
+                
+                np.save(f'./visual/gt_box_%s.npy' % class_idx, gt_boxes_single_head.cpu().numpy())
+                np.save(f'./visual/heatmap_%s.npy' % class_idx, heatmap.cpu().numpy())
+                np.save(f'./visual/quadrant_%s.npy' % class_idx, quadrant_label.cpu().numpy())
                 
             heatmaps.append(torch.stack(heatmap_list, dim=0))
             hos_box_labels.append(torch.stack(hos_box_list, dim=0))
             quadrant_labels.append(torch.stack(quadrant_list, dim=0))
-        
         ret_dict['heatmaps'] = torch.stack(heatmaps, dim=0)
         ret_dict['quadrant_labels'] = torch.sum(torch.stack(quadrant_labels, dim=0), dim=1)
         ret_dict['hos_box_labels'] = torch.sum(torch.stack(hos_box_labels, dim=0), dim=1)
+        pdb.set_trace()
         return ret_dict
     
     def forward(self, data_dict):
@@ -144,7 +141,7 @@ class HOSHead(HOSHeadTemplate):
         
         if not self.training or self.predict_boxes_when_training:
             box_dict, cls_dict, sco_dict = self.generate_predicted_boxes(
-                batch_size=batch_size, cls_preds=cls_preds, box_preds=box_preds
+                gt_boxes=data_dict['gt_boxes'], batch_size=batch_size, cls_preds=cls_preds, box_preds=box_preds
             )
             data_dict['batch_box_preds'] = box_dict
             data_dict['batch_cls_preds'] = cls_dict

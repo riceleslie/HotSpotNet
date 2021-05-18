@@ -16,7 +16,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
 
     loss_save = []
     for cur_it in range(total_it_each_epoch):
-    #for cur_it in range(3):
+    #for cur_it in range(1):
         try:
             batch = next(dataloader_iter)
         except StopIteration:

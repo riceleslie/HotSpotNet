@@ -271,14 +271,20 @@ __setstate__	pcdet/datasets/augmentor/database_sampler.py	/^    def __setstate__
 __setstate__	pcdet/datasets/dataset.py	/^    def __setstate__(self, d):$/;"	m	class:DatasetTemplate	file:
 __version__	pcdet/__init__.py	/^    __version__ = __version__ + '+py%s' % script_version$/;"	v
 __version__	pcdet/version.py	/^__version__ = "0.3.0+5396f34"$/;"	v
-_circle_nms	pcdet/utils/centernet_utils.py	/^def _circle_nms(boxes, min_radius, post_max_size=83):$/;"	f
 _extend_matrix	pcdet/datasets/kitti/kitti_object_eval_python/kitti_common.py	/^def _extend_matrix(mat):$/;"	f
+_gather_feat	pcdet/utils/back.py	/^def _gather_feat(feat, ind, mask=None):$/;"	f
 _gather_feat	pcdet/utils/centernet_utils.py	/^def _gather_feat(feat, ind, mask=None):$/;"	f
+_nms	pcdet/utils/back.py	/^def _nms(heat, kernel=3):$/;"	f
 _nms	pcdet/utils/centernet_utils.py	/^def _nms(heat, kernel=3):$/;"	f
 _prepare_data	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def _prepare_data(gt_annos, dt_annos, current_class, difficulty):$/;"	f
+_prepare_data	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def _prepare_data(gt_annos, dt_annos, current_class, difficulty):$/;"	f
 _read_imageset_file	pcdet/datasets/kitti/kitti_object_eval_python/evaluate.py	/^def _read_imageset_file(path):$/;"	f
+_read_imageset_file	pcdet/datasets/kitti/kitti_object_eval_python/evaluate_no_numba.py	/^def _read_imageset_file(path):$/;"	f
+_topk	pcdet/utils/back.py	/^def _topk(scores, K=40):$/;"	f
 _topk	pcdet/utils/centernet_utils.py	/^def _topk(scores, K=40):$/;"	f
+_transpose_and_gather_feat	pcdet/utils/back.py	/^def _transpose_and_gather_feat(feat, ind):$/;"	f
 _transpose_and_gather_feat	pcdet/utils/centernet_utils.py	/^def _transpose_and_gather_feat(feat, ind):$/;"	f
+a	output/kitti_models/HOS/default/ckpt/back/read.py	/^a = 3$/;"	v
 absolute_coordinates_encoding	pcdet/datasets/processor/point_feature_encoder.py	/^    def absolute_coordinates_encoding(self, points=None):$/;"	m	class:PointFeatureEncoder
 add_difficulty_to_annos	pcdet/datasets/kitti/kitti_object_eval_python/kitti_common.py	/^def add_difficulty_to_annos(info):$/;"	f
 add_sampled_boxes_to_scene	pcdet/datasets/augmentor/database_sampler.py	/^    def add_sampled_boxes_to_scene(self, data_dict, sampled_gt_boxes, total_valid_sampled_dict):$/;"	m	class:DataBaseSampler
@@ -286,10 +292,11 @@ add_sin_difference	pcdet/models/dense_heads/anchor_head_template.py	/^    def ad
 annealing_cos	tools/train_utils/optimization/learning_schedules_fastai.py	/^def annealing_cos(start, end, pct):$/;"	f
 area	pcdet/datasets/kitti/kitti_object_eval_python/kitti_common.py	/^def area(boxes, add1=False):$/;"	f
 area	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def area(int_pts, num_of_inter):$/;"	f
+area	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def area(int_pts, num_of_inter):$/;"	f
 args	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^    args = parser.parse_args()$/;"	v
 args	pcdet/datasets/waymo/waymo_dataset.py	/^    args = parser.parse_args()$/;"	v
 assign_stack_targets	pcdet/models/dense_heads/point_head_template.py	/^    def assign_stack_targets(self, points, gt_boxes, extend_gt_boxes=None,$/;"	m	class:PointHeadTemplate
-assign_target_of_single_head	pcdet/models/dense_heads/hos_head_template.py	/^    def assign_target_of_single_head($/;"	m	class:HOSHeadTemplate
+assign_target_of_single_head	pcdet/models/dense_heads/hos_head_template.py	/^    def assign_target_of_single_head(self, gt_boxes, feature_map_size, num_max_objs, x_shifts, y_shifts, z_shifts):$/;"	m	class:HOSHeadTemplate
 assign_targets	pcdet/models/dense_heads/anchor_head_template.py	/^    def assign_targets(self, gt_boxes):$/;"	m	class:AnchorHeadTemplate
 assign_targets	pcdet/models/dense_heads/hos_head.py	/^    def assign_targets(self, gt_boxes):$/;"	m	class:HOSHead
 assign_targets	pcdet/models/dense_heads/point_head_box.py	/^    def assign_targets(self, input_dict):$/;"	m	class:PointHeadBox
@@ -321,6 +328,7 @@ ball_query_wrapper_stack	pcdet/ops/pointnet2/pointnet2_stack/src/ball_query.cpp	
 beta	tools/train_utils/optimization/fastai_optim.py	/^    def beta(self) -> float:$/;"	m	class:OptimWrapper
 beta	tools/train_utils/optimization/fastai_optim.py	/^    def beta(self, val: float) -> None:$/;"	m	class:OptimWrapper
 bev_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def bev_box_overlap(boxes, qboxes, criterion=-1):$/;"	f
+bev_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def bev_box_overlap(boxes, qboxes, criterion=-1):$/;"	f
 bilinear_interpolate_torch	pcdet/models/backbones_3d/pfe/voxel_set_abstraction.py	/^def bilinear_interpolate_torch(im, x, y):$/;"	f
 bn_types	tools/train_utils/optimization/fastai_optim.py	/^bn_types = (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d, nn.SyncBatchNorm)$/;"	v
 box_colormap	tools/data_num/visualize_utils.py	/^box_colormap = [$/;"	v
@@ -336,6 +344,8 @@ boxes3d_lidar_to_kitti_camera	pcdet/utils/box_utils.py	/^def boxes3d_lidar_to_ki
 boxes3d_nearest_bev_iou	pcdet/utils/box_utils.py	/^def boxes3d_nearest_bev_iou(boxes_a, boxes_b):$/;"	f
 boxes3d_to_corners3d_kitti_camera	pcdet/utils/box_utils.py	/^def boxes3d_to_corners3d_kitti_camera(boxes3d, bottom_center=True):$/;"	f
 boxes_bev_iou_cpu	pcdet/ops/iou3d_nms/iou3d_nms_utils.py	/^def boxes_bev_iou_cpu(boxes_a, boxes_b):$/;"	f
+boxes_iou	pcdet/utils/back.py	/^def boxes_iou(box_a, box_b):$/;"	f
+boxes_iou	pcdet/utils/centernet_utils.py	/^def boxes_iou(box_a, box_b):$/;"	f
 boxes_iou3d_gpu	pcdet/ops/iou3d_nms/iou3d_nms_utils.py	/^def boxes_iou3d_gpu(boxes_a, boxes_b):$/;"	f
 boxes_iou_bev	pcdet/ops/iou3d_nms/iou3d_nms_utils.py	/^def boxes_iou_bev(boxes_a, boxes_b):$/;"	f
 boxes_iou_bev_cpu	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^int boxes_iou_bev_cpu(at::Tensor boxes_a_tensor, at::Tensor boxes_b_tensor, at::Tensor ans_iou_tensor){$/;"	f
@@ -369,6 +379,7 @@ build_roi_head	pcdet/models/detectors/detector3d_template.py	/^    def build_roi
 build_scheduler	tools/train_utils/optimization/__init__.py	/^def build_scheduler(optimizer, total_iters_each_epoch, total_epochs, last_epoch, optim_cfg):$/;"	f
 build_vfe	pcdet/models/detectors/detector3d_template.py	/^    def build_vfe(self, model_info_dict):$/;"	m	class:Detector3DTemplate
 calculate_iou_partly	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def calculate_iou_partly(gt_annos, dt_annos, metric, num_parts=50):$/;"	f
+calculate_iou_partly	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def calculate_iou_partly(gt_annos, dt_annos, metric, num_parts=50):$/;"	f
 cart_to_hom	pcdet/utils/calibration_kitti.py	/^    def cart_to_hom(self, pts):$/;"	m	class:Calibration
 cfg	pcdet/config.py	/^cfg = EasyDict()$/;"	v
 cfg_from_list	pcdet/config.py	/^def cfg_from_list(cfg_list, config):$/;"	f
@@ -383,17 +394,19 @@ check_rect_cross	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline int check_rect_c
 check_sequence_name_with_all_version	pcdet/datasets/waymo/waymo_dataset.py	/^    def check_sequence_name_with_all_version(sequence_file):$/;"	m	class:WaymoDataset
 checkpoint_state	tools/train_utils/train_utils.py	/^def checkpoint_state(model=None, optimizer=None, epoch=None, it=None):$/;"	f
 children	tools/train_utils/optimization/__init__.py	/^        def children(m: nn.Module):$/;"	f	function:build_optimizer
-circle_nms	pcdet/utils/centernet_utils.py	/^def circle_nms(dets, thresh):$/;"	f
 class_agnostic_nms	pcdet/models/model_utils/model_nms_utils.py	/^def class_agnostic_nms(box_scores, box_preds, nms_config, score_thresh=None):$/;"	f
 class_names	pcdet/datasets/kitti/kitti_dataset.py	/^            class_names=['Car', 'Pedestrian', 'Cyclist'],$/;"	v
 class_names	pcdet/datasets/waymo/waymo_dataset.py	/^            class_names=['Vehicle', 'Pedestrian', 'Cyclist'],$/;"	v
 clean_data	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def clean_data(gt_anno, dt_anno, current_class, difficulty):$/;"	f
+clean_data	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def clean_data(gt_anno, dt_anno, current_class, difficulty):$/;"	f
 clear	tools/train_utils/optimization/fastai_optim.py	/^    def clear(self):$/;"	m	class:OptimWrapper
 cls_attr_dist	pcdet/datasets/nuscenes/nuscenes_utils.py	/^cls_attr_dist = {$/;"	v
 cls_type_to_id	pcdet/utils/object3d_kitti.py	/^def cls_type_to_id(cls_type):$/;"	f
 collate_batch	pcdet/datasets/dataset.py	/^    def collate_batch(batch_list, _unused=False):$/;"	m	class:DatasetTemplate
 compute_statistics_jit	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def compute_statistics_jit(overlaps,$/;"	f
+compute_statistics_jit	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def compute_statistics_jit(overlaps,$/;"	f
 config	pcdet/models/dense_heads/target_assigner/anchor_generator.py	/^    config = [$/;"	v	class:AnchorGenerator
+content	output/kitti_models/HOS/default/ckpt/back/read.py	/^content = torch.load('checkpoint_epoch_10.pth')$/;"	v
 convert_range_image_to_point_cloud	pcdet/datasets/waymo/waymo_utils.py	/^def convert_range_image_to_point_cloud(frame, range_images, camera_projections, range_image_top_pose, ri_index=0):$/;"	f
 corners3d_to_img_boxes	pcdet/utils/calibration_kitti.py	/^    def corners3d_to_img_boxes(self, corners3d):$/;"	m	class:Calibration
 create	tools/train_utils/optimization/fastai_optim.py	/^    def create(cls, opt_func, lr,$/;"	m	class:FastAIMixedOptim
@@ -408,7 +421,9 @@ create_waymo_infos	pcdet/datasets/waymo/waymo_dataset.py	/^def create_waymo_info
 cross	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline float cross(const Point &a, const Point &b){$/;"	f
 cross	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline float cross(const Point &p1, const Point &p2, const Point &p0){$/;"	f
 d3_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def d3_box_overlap(boxes, qboxes, criterion=-1):$/;"	f
+d3_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def d3_box_overlap(boxes, qboxes, criterion=-1):$/;"	f
 d3_box_overlap_kernel	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def d3_box_overlap_kernel(boxes, qboxes, rinc, criterion=-1):$/;"	f
+d3_box_overlap_kernel	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def d3_box_overlap_kernel(boxes, qboxes, rinc, criterion=-1):$/;"	f
 data_path	pcdet/datasets/kitti/kitti_dataset.py	/^            data_path=ROOT_DIR \/ 'data' \/ 'kitti',$/;"	v
 data_path	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^            data_path=ROOT_DIR \/ 'data' \/ 'nuscenes',$/;"	v
 data_path	pcdet/datasets/waymo/waymo_dataset.py	/^            data_path=ROOT_DIR \/ 'data' \/ 'waymo',$/;"	v
@@ -417,19 +432,25 @@ dataset_cfg	pcdet/datasets/kitti/kitti_dataset.py	/^        dataset_cfg = EasyDi
 dataset_cfg	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^        dataset_cfg = EasyDict(yaml.load(open(args.cfg_file)))$/;"	v
 dataset_cfg	pcdet/datasets/waymo/waymo_dataset.py	/^            dataset_cfg=dataset_cfg,$/;"	v
 dataset_cfg	pcdet/datasets/waymo/waymo_dataset.py	/^        dataset_cfg = EasyDict(yaml.load(open(args.cfg_file)))$/;"	v
-decode_bbox_from_heatmap	pcdet/utils/centernet_utils.py	/^def decode_bbox_from_heatmap(heatmap, boxes, point_cloud_range, feature_map_size):$/;"	f
+decode_bbox_from_heatmap	pcdet/utils/back.py	/^def decode_bbox_from_heatmap(heatmap, boxes, x_shifts, y_shifts, z_shifts,$/;"	f
+decode_bbox_from_heatmap	pcdet/utils/centernet_utils.py	/^def decode_bbox_from_heatmap(gt_boxes, heatmap, boxes, x_shifts, y_shifts, z_shifts,$/;"	f
 decode_torch	pcdet/utils/box_coder_utils.py	/^    def decode_torch(box_encodings, anchors):$/;"	m	class:PreviousResidualDecoder
 decode_torch	pcdet/utils/box_coder_utils.py	/^    def decode_torch(box_encodings, anchors):$/;"	m	class:PreviousResidualRoIDecoder
 decode_torch	pcdet/utils/box_coder_utils.py	/^    def decode_torch(self, box_encodings, anchors):$/;"	m	class:HOSResidualCoder
 decode_torch	pcdet/utils/box_coder_utils.py	/^    def decode_torch(self, box_encodings, anchors):$/;"	m	class:ResidualCoder
 decode_torch	pcdet/utils/box_coder_utils.py	/^    def decode_torch(self, box_encodings, points, pred_classes=None):$/;"	m	class:PointResidualCoder
 devRotateIoUEval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def devRotateIoUEval(rbox1, rbox2, criterion=-1):$/;"	f
+devRotateIoUEval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def devRotateIoUEval(rbox1, rbox2, criterion=-1):$/;"	f
 device	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^    device=True,$/;"	v
 div_up	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def div_up(m, n):$/;"	f
+div_up	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def div_up(m, n):$/;"	f
 do_coco_style_eval	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def do_coco_style_eval(gt_annos, dt_annos, current_classes, overlap_ranges,$/;"	f
+do_coco_style_eval	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def do_coco_style_eval(gt_annos, dt_annos, current_classes, overlap_ranges,$/;"	f
 do_eval	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def do_eval(gt_annos,$/;"	f
+do_eval	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def do_eval(gt_annos,$/;"	f
 draw_corners3d	tools/data_num/visualize_utils.py	/^def draw_corners3d(corners3d, fig, color=(1, 1, 1), line_width=2, cls=None, tag='', max_num=500, tube_radius=None):$/;"	f
 draw_corners3d	tools/visual_utils/visualize_utils.py	/^def draw_corners3d(corners3d, fig, color=(1, 1, 1), line_width=2, cls=None, tag='', max_num=500, tube_radius=None):$/;"	f
+draw_gaussian_to_heatmap	pcdet/utils/back.py	/^def draw_gaussian_to_heatmap(heatmap, center, radius, k=1):$/;"	f
 draw_gaussian_to_heatmap	pcdet/utils/centernet_utils.py	/^def draw_gaussian_to_heatmap(heatmap, center, radius, k=1):$/;"	f
 draw_grid	tools/data_num/visualize_utils.py	/^def draw_grid(x1, y1, x2, y2, fig, tube_radius=None, color=(0.5, 0.5, 0.5)):$/;"	f
 draw_grid	tools/visual_utils/visualize_utils.py	/^def draw_grid(x1, y1, x2, y2, fig, tube_radius=None, color=(0.5, 0.5, 0.5)):$/;"	f
@@ -445,16 +466,19 @@ encode_torch	pcdet/utils/box_coder_utils.py	/^    def encode_torch(self, gt_box,
 encode_torch	pcdet/utils/box_coder_utils.py	/^    def encode_torch(self, gt_boxes, points, gt_classes=None):$/;"	m	class:PointResidualCoder
 enlarge_box3d	pcdet/utils/box_utils.py	/^def enlarge_box3d(boxes3d, extra_width=(0, 0, 0)):$/;"	f
 eval_class	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def eval_class(gt_annos,$/;"	f
+eval_class	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def eval_class(gt_annos,$/;"	f
 eval_one_epoch	tools/eval_utils/eval_utils.py	/^def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, save_to_file=False, result_dir=None):$/;"	f
 eval_single_ckpt	tools/test.py	/^def eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=False):$/;"	f
 eval_value_ops	pcdet/datasets/waymo/waymo_eval.py	/^    def eval_value_ops(self, sess, graph, metrics):$/;"	m	class:OpenPCDetWaymoDetectionMetricsEstimator
 evaluate	pcdet/datasets/kitti/kitti_object_eval_python/evaluate.py	/^def evaluate(label_path,$/;"	f
+evaluate	pcdet/datasets/kitti/kitti_object_eval_python/evaluate_no_numba.py	/^def evaluate(label_path,$/;"	f
 evaluation	pcdet/datasets/kitti/kitti_dataset.py	/^    def evaluation(self, det_annos, class_names, **kwargs):$/;"	m	class:KittiDataset
 evaluation	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^    def evaluation(self, det_annos, class_names, **kwargs):$/;"	m	class:NuScenesDataset
 evaluation	pcdet/datasets/waymo/waymo_dataset.py	/^    def evaluation(self, det_annos, class_names, **kwargs):$/;"	m	class:WaymoDataset
 expansion	pcdet/models/backbones_3d/spconv_backbone.py	/^    expansion = 1$/;"	v	class:SparseBasicBlock
 expansion	pcdet/models/backbones_3d/spconv_unet.py	/^    expansion = 1$/;"	v	class:SparseBasicBlock
 fake_sparse_idx	pcdet/models/roi_heads/partA2_head.py	/^    def fake_sparse_idx(sparse_idx, batch_size_rcnn):$/;"	m	class:PartA2FCHead
+file	tools/visual_loss/load.py	/^file = open('result.pkl')$/;"	v
 fill_trainval_infos	pcdet/datasets/nuscenes/nuscenes_utils.py	/^def fill_trainval_infos(data_path, nusc, train_scenes, val_scenes, test=False, max_sweeps=10):$/;"	f
 filter_annos_low_score	pcdet/datasets/kitti/kitti_object_eval_python/kitti_common.py	/^def filter_annos_low_score(image_annos, thresh):$/;"	f
 filter_by_difficulty	pcdet/datasets/augmentor/database_sampler.py	/^    def filter_by_difficulty(self, db_infos, removed_difficulty):$/;"	m	class:DataBaseSampler
@@ -534,17 +558,20 @@ furthest_point_sample	pcdet/ops/pointnet2/pointnet2_stack/pointnet2_utils.py	/^f
 furthest_point_sampling_wrapper	pcdet/ops/pointnet2/pointnet2_batch/src/sampling.cpp	/^int furthest_point_sampling_wrapper(int b, int n, int m, $/;"	f
 furthest_point_sampling_wrapper	pcdet/ops/pointnet2/pointnet2_stack/src/sampling.cpp	/^int furthest_point_sampling_wrapper(int b, int n, int m,$/;"	f
 fused_compute_statistics	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def fused_compute_statistics(overlaps,$/;"	f
+fused_compute_statistics	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def fused_compute_statistics(overlaps,$/;"	f
 gather_operation	pcdet/ops/pointnet2/pointnet2_batch/pointnet2_utils.py	/^gather_operation = GatherOperation.apply$/;"	v
 gather_points_grad_wrapper_fast	pcdet/ops/pointnet2/pointnet2_batch/src/sampling.cpp	/^int gather_points_grad_wrapper_fast(int b, int c, int n, int npoints, $/;"	f
 gather_points_wrapper_fast	pcdet/ops/pointnet2/pointnet2_batch/src/sampling.cpp	/^int gather_points_wrapper_fast(int b, int c, int n, int npoints, $/;"	f
+gaussian2D	pcdet/utils/back.py	/^def gaussian2D(shape, sigma=1):$/;"	f
 gaussian2D	pcdet/utils/centernet_utils.py	/^def gaussian2D(shape, sigma=1):$/;"	f
+gaussian_radius	pcdet/utils/back.py	/^def gaussian_radius(height, width, min_overlap=0.5):$/;"	f
 gaussian_radius	pcdet/utils/centernet_utils.py	/^def gaussian_radius(height, width, min_overlap=0.5):$/;"	f
 generate_anchors	pcdet/models/dense_heads/anchor_head_template.py	/^    def generate_anchors(anchor_generator_cfg, grid_size, point_cloud_range, anchor_ndim=7):$/;"	m	class:AnchorHeadTemplate
 generate_anchors	pcdet/models/dense_heads/target_assigner/anchor_generator.py	/^    def generate_anchors(self, grid_sizes):$/;"	m	class:AnchorGenerator
 generate_corners3d	pcdet/utils/object3d_kitti.py	/^    def generate_corners3d(self):$/;"	m	class:Object3d
 generate_labels	pcdet/datasets/waymo/waymo_utils.py	/^def generate_labels(frame):$/;"	f
 generate_predicted_boxes	pcdet/models/dense_heads/anchor_head_template.py	/^    def generate_predicted_boxes(self, batch_size, cls_preds, box_preds, dir_cls_preds=None):$/;"	m	class:AnchorHeadTemplate
-generate_predicted_boxes	pcdet/models/dense_heads/hos_head_template.py	/^    def generate_predicted_boxes(self, batch_size, cls_preds, box_preds):$/;"	m	class:HOSHeadTemplate
+generate_predicted_boxes	pcdet/models/dense_heads/hos_head_template.py	/^    def generate_predicted_boxes(self, gt_boxes, batch_size, cls_preds, box_preds):$/;"	m	class:HOSHeadTemplate
 generate_predicted_boxes	pcdet/models/dense_heads/point_head_template.py	/^    def generate_predicted_boxes(self, points, point_cls_preds, point_box_preds):$/;"	m	class:PointHeadTemplate
 generate_predicted_boxes	pcdet/models/roi_heads/roi_head_template.py	/^    def generate_predicted_boxes(self, batch_size, rois, cls_preds, box_preds):$/;"	m	class:RoIHeadTemplate
 generate_prediction_dicts	pcdet/datasets/dataset.py	/^    def generate_prediction_dicts(batch_dict, pred_dicts, class_names, output_path=None):$/;"	m	class:DatasetTemplate
@@ -569,6 +596,7 @@ get_cls_layer_loss	pcdet/models/dense_heads/anchor_head_multi.py	/^    def get_c
 get_cls_layer_loss	pcdet/models/dense_heads/anchor_head_template.py	/^    def get_cls_layer_loss(self):$/;"	m	class:AnchorHeadTemplate
 get_cls_layer_loss	pcdet/models/dense_heads/point_head_template.py	/^    def get_cls_layer_loss(self, tb_dict=None):$/;"	m	class:PointHeadTemplate
 get_coco_eval_result	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_coco_eval_result(gt_annos, dt_annos, current_classes):$/;"	f
+get_coco_eval_result	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_coco_eval_result(gt_annos, dt_annos, current_classes):$/;"	f
 get_corner_loss_lidar	pcdet/utils/loss_utils.py	/^def get_corner_loss_lidar(pred_bbox3d: torch.Tensor, gt_bbox3d: torch.Tensor):$/;"	f
 get_dense_grid_points	pcdet/models/roi_heads/pvrcnn_head.py	/^    def get_dense_grid_points(rois, batch_size_rcnn, grid_size):$/;"	m	class:PVRCNNHead
 get_direction_target	pcdet/models/dense_heads/anchor_head_template.py	/^    def get_direction_target(anchors, reg_targets, one_hot=True, dir_offset=0, num_bins=2):$/;"	m	class:AnchorHeadTemplate
@@ -600,12 +628,15 @@ get_loss	pcdet/models/dense_heads/point_intra_part_head.py	/^    def get_loss(se
 get_loss	pcdet/models/roi_heads/roi_head_template.py	/^    def get_loss(self, tb_dict=None):$/;"	m	class:RoIHeadTemplate
 get_lr	tools/train_utils/optimization/learning_schedules_fastai.py	/^    def get_lr(self):$/;"	m	class:CosineWarmupLR
 get_mAP	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_mAP(prec):$/;"	f
+get_mAP	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_mAP(prec):$/;"	f
 get_mAP_R40	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_mAP_R40(prec):$/;"	f
+get_mAP_R40	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_mAP_R40(prec):$/;"	f
 get_master	tools/train_utils/optimization/fastai_optim.py	/^def get_master(layer_groups, flat_master: bool = False):$/;"	f
 get_max_iou_with_same_class	pcdet/models/roi_heads/target_assigner/proposal_target_layer.py	/^    def get_max_iou_with_same_class(rois, roi_labels, gt_boxes, gt_labels):$/;"	m	class:ProposalTargetLayer
 get_no_evaluated_ckpt	tools/test.py	/^def get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args):$/;"	f
 get_objects_from_label	pcdet/utils/object3d_kitti.py	/^def get_objects_from_label(label_file):$/;"	f
 get_official_eval_result	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_official_eval_result(gt_annos, dt_annos, current_classes, PR_detail_dict=None):$/;"	f
+get_official_eval_result	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_official_eval_result(gt_annos, dt_annos, current_classes, PR_detail_dict=None):$/;"	f
 get_output_feature_dim	pcdet/models/backbones_3d/vfe/mean_vfe.py	/^    def get_output_feature_dim(self):$/;"	m	class:MeanVFE
 get_output_feature_dim	pcdet/models/backbones_3d/vfe/pillar_vfe.py	/^    def get_output_feature_dim(self):$/;"	m	class:PillarVFE
 get_output_feature_dim	pcdet/models/backbones_3d/vfe/vfe_template.py	/^    def get_output_feature_dim(self):$/;"	m	class:VFETemplate
@@ -615,12 +646,14 @@ get_road_plane	pcdet/datasets/kitti/kitti_dataset.py	/^    def get_road_plane(se
 get_sample_data	pcdet/datasets/nuscenes/nuscenes_utils.py	/^def get_sample_data(nusc, sample_data_token, selected_anntokens=None):$/;"	f
 get_sampled_points	pcdet/models/backbones_3d/pfe/voxel_set_abstraction.py	/^    def get_sampled_points(self, batch_dict):$/;"	m	class:VoxelSetAbstraction
 get_split_parts	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_split_parts(num, num_part):$/;"	f
+get_split_parts	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_split_parts(num, num_part):$/;"	f
 get_sweep	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^    def get_sweep(self, sweep_info):$/;"	m	class:NuScenesDataset
 get_target_assigner	pcdet/models/dense_heads/anchor_head_template.py	/^    def get_target_assigner(self, anchor_target_cfg):$/;"	m	class:AnchorHeadTemplate
 get_template_prediction	pcdet/datasets/kitti/kitti_dataset.py	/^        def get_template_prediction(num_samples):$/;"	f	function:KittiDataset.generate_prediction_dicts
 get_template_prediction	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^        def get_template_prediction(num_samples):$/;"	f	function:NuScenesDataset.generate_prediction_dicts
 get_template_prediction	pcdet/datasets/waymo/waymo_dataset.py	/^        def get_template_prediction(num_samples):$/;"	f	function:WaymoDataset.generate_prediction_dicts
 get_thresholds	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def get_thresholds(scores: np.ndarray, num_gt, num_sample_pts=41):$/;"	f
+get_thresholds	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def get_thresholds(scores: np.ndarray, num_gt, num_sample_pts=41):$/;"	f
 get_training_loss	pcdet/models/detectors/HOS_net.py	/^    def get_training_loss(self):$/;"	m	class:HOSNet
 get_training_loss	pcdet/models/detectors/PartA2_net.py	/^    def get_training_loss(self):$/;"	m	class:PartA2Net
 get_training_loss	pcdet/models/detectors/point_rcnn.py	/^    def get_training_loss(self):$/;"	m	class:PointRCNN
@@ -640,11 +673,13 @@ grouping_operation	pcdet/ops/pointnet2/pointnet2_batch/pointnet2_utils.py	/^grou
 grouping_operation	pcdet/ops/pointnet2/pointnet2_stack/pointnet2_utils.py	/^grouping_operation = GroupingOperation.apply$/;"	v
 gt_sampling	pcdet/datasets/augmentor/data_augmentor.py	/^    def gt_sampling(self, config=None):$/;"	m	class:DataAugmentor
 image_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def image_box_overlap(boxes, query_boxes, criterion=-1):$/;"	f
+image_box_overlap	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def image_box_overlap(boxes, query_boxes, criterion=-1):$/;"	f
 img_to_rect	pcdet/utils/calibration_kitti.py	/^    def img_to_rect(self, u, v, depth_rect):$/;"	m	class:Calibration
 in_hull	pcdet/utils/box_utils.py	/^def in_hull(p, hull):$/;"	f
 include_kitti_data	pcdet/datasets/kitti/kitti_dataset.py	/^    def include_kitti_data(self, mode):$/;"	m	class:KittiDataset
 include_nuscenes_data	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^    def include_nuscenes_data(self, mode):$/;"	m	class:NuScenesDataset
 include_waymo_data	pcdet/datasets/waymo/waymo_dataset.py	/^    def include_waymo_data(self, mode):$/;"	m	class:WaymoDataset
+inf	tools/visual_loss/load.py	/^inf = pickle.load(file)$/;"	v
 init_dist_pytorch	pcdet/utils/common_utils.py	/^def init_dist_pytorch(tcp_port, local_rank, backend='nccl'):$/;"	f
 init_dist_slurm	pcdet/utils/common_utils.py	/^def init_dist_slurm(tcp_port, local_rank, backend='nccl'):$/;"	f
 init_weights	pcdet/models/dense_heads/anchor_head_multi.py	/^    def init_weights(self):$/;"	m	class:SingleHead
@@ -656,6 +691,7 @@ init_weights	pcdet/models/roi_heads/pvrcnn_head.py	/^    def init_weights(self, 
 init_weights	pcdet/ops/pointnet2/pointnet2_stack/pointnet2_modules.py	/^    def init_weights(self):$/;"	m	class:StackSAModuleMSG
 inline	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^    inline=True)$/;"	v
 inter	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def inter(rbbox1, rbbox2):$/;"	f
+inter	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def inter(rbbox1, rbbox2):$/;"	f
 interpolate_from_bev_features	pcdet/models/backbones_3d/pfe/voxel_set_abstraction.py	/^    def interpolate_from_bev_features(self, keypoints, bev_features, batch_size, bev_stride):$/;"	m	class:VoxelSetAbstraction
 intersection	pcdet/datasets/kitti/kitti_object_eval_python/kitti_common.py	/^def intersection(boxes1, boxes2, add1=False):$/;"	f
 intersection	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline int intersection(const Point &p1, const Point &p0, const Point &q1, const Point &q0, Point &ans){$/;"	f
@@ -672,7 +708,9 @@ lidar_to_rect	pcdet/utils/calibration_kitti.py	/^    def lidar_to_rect(self, pts
 limit_period	pcdet/datasets/waymo/waymo_eval.py	/^def limit_period(val, offset=0.5, period=np.pi):$/;"	f
 limit_period	pcdet/utils/common_utils.py	/^def limit_period(val, offset=0.5, period=np.pi):$/;"	f
 line_segment_intersection	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def line_segment_intersection(pts1, pts2, i, j, temp_pts):$/;"	f
+line_segment_intersection	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def line_segment_intersection(pts1, pts2, i, j, temp_pts):$/;"	f
 line_segment_intersection_v1	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):$/;"	f
+line_segment_intersection_v1	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):$/;"	f
 listify	tools/train_utils/optimization/fastai_optim.py	/^def listify(p=None, q=None):$/;"	f
 load_data_to_gpu	pcdet/models/__init__.py	/^def load_data_to_gpu(batch_dict):$/;"	f
 load_params_from_file	pcdet/models/detectors/detector3d_template.py	/^    def load_params_from_file(self, filename, logger, to_cpu=False):$/;"	m	class:Detector3DTemplate
@@ -721,9 +759,12 @@ nms_gpu	pcdet/ops/iou3d_nms/iou3d_nms_utils.py	/^def nms_gpu(boxes, scores, thre
 nms_gpu	pcdet/ops/iou3d_nms/src/iou3d_nms.cpp	/^int nms_gpu(at::Tensor boxes, at::Tensor keep, float nms_overlap_thresh){$/;"	f
 nms_normal_gpu	pcdet/ops/iou3d_nms/iou3d_nms_utils.py	/^def nms_normal_gpu(boxes, scores, thresh, **kwargs):$/;"	f
 nms_normal_gpu	pcdet/ops/iou3d_nms/src/iou3d_nms.cpp	/^int nms_normal_gpu(at::Tensor boxes, at::Tensor keep, float nms_overlap_thresh){$/;"	f
+nms_with_iou	pcdet/utils/back.py	/^def nms_with_iou(dets, thresh):$/;"	f
+nms_with_iou	pcdet/utils/centernet_utils.py	/^def nms_with_iou(dets, thresh):$/;"	f
 num_children	tools/train_utils/optimization/__init__.py	/^        def num_children(m: nn.Module) -> int:$/;"	f	function:build_optimizer
 num_point_features	pcdet/datasets/processor/point_feature_encoder.py	/^    def num_point_features(self):$/;"	m	class:PointFeatureEncoder
 nuscenes_dataset	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^        nuscenes_dataset = NuScenesDataset($/;"	v
+obtain_cls_heatmap	pcdet/utils/back.py	/^def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):$/;"	f
 obtain_cls_heatmap	pcdet/utils/centernet_utils.py	/^def obtain_cls_heatmap(heatmap, center, x_shifts, y_shifts, num_max_objs):$/;"	f
 operator +	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^    __device__ Point operator +(const Point &b)const{$/;"	f	struct:Point
 operator -	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^    __device__ Point operator -(const Point &b)const{$/;"	f	struct:Point
@@ -738,6 +779,7 @@ parser	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^    parser = argparse.Argum
 parser	pcdet/datasets/waymo/waymo_dataset.py	/^    parser = argparse.ArgumentParser(description='arg parser')$/;"	v
 point_cmp	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline int point_cmp(const Point &a, const Point &b, const Point &center){$/;"	f
 point_in_quadrilateral	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def point_in_quadrilateral(pt_x, pt_y, corners):$/;"	f
+point_in_quadrilateral	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def point_in_quadrilateral(pt_x, pt_y, corners):$/;"	f
 points_in_boxes_cpu	pcdet/ops/roiaware_pool3d/roiaware_pool3d_utils.py	/^def points_in_boxes_cpu(points, boxes):$/;"	f
 points_in_boxes_cpu	pcdet/ops/roiaware_pool3d/src/roiaware_pool3d.cpp	/^int points_in_boxes_cpu(at::Tensor boxes_tensor, at::Tensor pts_tensor, at::Tensor pts_indices_tensor){$/;"	f
 points_in_boxes_gpu	pcdet/ops/roiaware_pool3d/roiaware_pool3d_utils.py	/^def points_in_boxes_gpu(points, boxes):$/;"	f
@@ -747,12 +789,14 @@ post_act_block	pcdet/models/roi_heads/partA2_head.py	/^    def post_act_block(se
 post_processing	pcdet/models/detectors/detector3d_template.py	/^    def post_processing(self, batch_dict):$/;"	m	class:Detector3DTemplate
 prepare_data	pcdet/datasets/dataset.py	/^    def prepare_data(self, data_dict):$/;"	m	class:DatasetTemplate
 print_str	pcdet/datasets/kitti/kitti_object_eval_python/eval.py	/^def print_str(value, *arg, sstream=None):$/;"	f
+print_str	pcdet/datasets/kitti/kitti_object_eval_python/eval_no_numba.py	/^def print_str(value, *arg, sstream=None):$/;"	f
 process_single_scene	pcdet/datasets/kitti/kitti_dataset.py	/^        def process_single_scene(sample_idx):$/;"	f	function:KittiDataset.get_infos
 process_single_sequence	pcdet/datasets/waymo/waymo_utils.py	/^def process_single_sequence(sequence_file, save_path, sampled_interval, has_label=True):$/;"	f
 processed_data_tag	pcdet/datasets/waymo/waymo_dataset.py	/^            processed_data_tag=dataset_cfg.PROCESSED_DATA_TAG$/;"	v
 proposal_layer	pcdet/models/roi_heads/roi_head_template.py	/^    def proposal_layer(self, batch_dict, nms_config):$/;"	m	class:RoIHeadTemplate
 put_boxes_on_road_planes	pcdet/datasets/augmentor/database_sampler.py	/^    def put_boxes_on_road_planes(gt_boxes, road_planes, calib):$/;"	m	class:DataBaseSampler
 quadrilateral_intersection	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def quadrilateral_intersection(pts1, pts2, int_pts):$/;"	f
+quadrilateral_intersection	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def quadrilateral_intersection(pts1, pts2, int_pts):$/;"	f
 quaternion_yaw	pcdet/datasets/nuscenes/nuscenes_utils.py	/^def quaternion_yaw(q: Quaternion) -> float:$/;"	f
 random_flip_along_x	pcdet/datasets/augmentor/augmentor_utils.py	/^def random_flip_along_x(gt_boxes, points):$/;"	f
 random_flip_along_y	pcdet/datasets/augmentor/augmentor_utils.py	/^def random_flip_along_y(gt_boxes, points):$/;"	f
@@ -761,6 +805,7 @@ random_world_rotation	pcdet/datasets/augmentor/data_augmentor.py	/^    def rando
 random_world_scaling	pcdet/datasets/augmentor/data_augmentor.py	/^    def random_world_scaling(self, data_dict=None, config=None):$/;"	m	class:DataAugmentor
 raw_data_tag	pcdet/datasets/waymo/waymo_dataset.py	/^            raw_data_tag='raw_data',$/;"	v
 rbbox_to_corners	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def rbbox_to_corners(corners, rbbox):$/;"	f
+rbbox_to_corners	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def rbbox_to_corners(corners, rbbox):$/;"	f
 read_defaults	tools/train_utils/optimization/fastai_optim.py	/^    def read_defaults(self) -> None:$/;"	m	class:OptimWrapper
 read_val	tools/train_utils/optimization/fastai_optim.py	/^    def read_val(self, key: str):$/;"	m	class:OptimWrapper
 rect_to_img	pcdet/utils/calibration_kitti.py	/^    def rect_to_img(self, pts_rect):$/;"	m	class:Calibration
@@ -777,7 +822,9 @@ roipool3d_gpu	pcdet/ops/roipoint_pool3d/src/roipoint_pool3d.cpp	/^int roipool3d_
 root_path	pcdet/datasets/nuscenes/nuscenes_dataset.py	/^            root_path=ROOT_DIR \/ 'data' \/ 'nuscenes',$/;"	v
 rotate_around_center	pcdet/ops/iou3d_nms/src/iou3d_cpu.cpp	/^inline void rotate_around_center(const Point &center, const float angle_cos, const float angle_sin, Point &p){$/;"	f
 rotate_iou_gpu_eval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def rotate_iou_gpu_eval(boxes, query_boxes, criterion=-1, device_id=0):$/;"	f
+rotate_iou_gpu_eval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def rotate_iou_gpu_eval(boxes, query_boxes, criterion=-1, device_id=0):$/;"	f
 rotate_iou_kernel_eval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def rotate_iou_kernel_eval(N, K, dev_boxes, dev_query_boxes, dev_iou, criterion=-1):$/;"	f
+rotate_iou_kernel_eval	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def rotate_iou_kernel_eval(N, K, dev_boxes, dev_query_boxes, dev_iou, criterion=-1):$/;"	f
 rotate_points_along_z	pcdet/utils/common_utils.py	/^def rotate_points_along_z(points, angle):$/;"	f
 rotate_points_along_z	tools/data_num/visualize_utils.py	/^def rotate_points_along_z(points, angle):$/;"	f
 rotate_points_along_z	tools/visual_utils/visualize_utils.py	/^def rotate_points_along_z(points, angle):$/;"	f
@@ -804,6 +851,7 @@ sigmoid_cross_entropy_with_logits	pcdet/utils/loss_utils.py	/^    def sigmoid_cr
 smooth_l1_loss	pcdet/utils/loss_utils.py	/^    def smooth_l1_loss(diff, beta):$/;"	m	class:HOSSmoothL1Loss
 smooth_l1_loss	pcdet/utils/loss_utils.py	/^    def smooth_l1_loss(diff, beta):$/;"	m	class:WeightedSmoothL1Loss
 sort_vertex_in_convex_polygon	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def sort_vertex_in_convex_polygon(int_pts, num_of_inter):$/;"	f
+sort_vertex_in_convex_polygon	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def sort_vertex_in_convex_polygon(int_pts, num_of_inter):$/;"	f
 split_bn_bias	tools/train_utils/optimization/fastai_optim.py	/^def split_bn_bias(layer_groups):$/;"	f
 statistics_info	tools/eval_utils/eval_utils.py	/^def statistics_info(cfg, ret_dict, metric, disp_dict):$/;"	f
 step	tools/train_utils/optimization/fastai_optim.py	/^    def step(self) -> None:$/;"	m	class:OptimWrapper
@@ -826,6 +874,7 @@ train_model	tools/train_utils/train_utils.py	/^def train_model(model, optimizer,
 train_one_epoch	tools/train_utils/train_utils.py	/^def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, accumulated_iter, optim_cfg,$/;"	f
 trainable_params	tools/train_utils/optimization/fastai_optim.py	/^def trainable_params(m: nn.Module):$/;"	f
 trangle_area	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou.py	/^def trangle_area(a, b, c):$/;"	f
+trangle_area	pcdet/datasets/kitti/kitti_object_eval_python/rotate_iou_no_numba.py	/^def trangle_area(a, b, c):$/;"	f
 transform_det_annos_to_nusc_annos	pcdet/datasets/nuscenes/nuscenes_utils.py	/^def transform_det_annos_to_nusc_annos(det_annos, nusc):$/;"	f
 transform_points_to_voxels	pcdet/datasets/processor/data_processor.py	/^    def transform_points_to_voxels(self, data_dict=None, config=None, voxel_generator=None):$/;"	m	class:DataProcessor
 update_global_step	pcdet/models/detectors/detector3d_template.py	/^    def update_global_step(self):$/;"	m	class:Detector3DTemplate

@@ -205,69 +205,6 @@ class Detector3DTemplate(nn.Module):
             scores = batch_dict['batch_sco_preds'][batch_mask]
             src_box_preds = box_preds
 
-           # if not isinstance(batch_dict['batch_cls_preds'], list):
-           #     cls_preds = batch_dict['batch_cls_preds'][batch_mask]
-           #     pdb.set_trace()
-           #     src_cls_preds = cls_preds
-           #     assert cls_preds.shape[1] in [1, self.num_class]
-
-           #    # if not batch_dict['cls_preds_normalized']:
-           #    #     cls_preds = torch.sigmoid(cls_preds)
-           # else:
-           #     cls_preds = [x[batch_mask] for x in batch_dict['batch_cls_preds']]
-           #     pdb.set_trace()
-           #     src_cls_preds = cls_preds
-           #     if not batch_dict['cls_preds_normalized']:
-           #         cls_preds = [torch.sigmoid(x) for x in cls_preds]
-
-           # if post_process_cfg.NMS_CONFIG.MULTI_CLASSES_NMS:
-           #     if not isinstance(cls_preds, list):
-           #         cls_preds = [cls_preds]
-           #         multihead_label_mapping = [torch.arange(1, self.num_class, device=cls_preds[0].device)]
-           #     else:
-           #         multihead_label_mapping = batch_dict['multihead_label_mapping']
-
-           #     cur_start_idx = 0
-           #     pred_scores, pred_labels, pred_boxes = [], [], []
-           #     for cur_cls_preds, cur_label_mapping in zip(cls_preds, multihead_label_mapping):
-           #         assert cur_cls_preds.shape[1] == len(cur_label_mapping)
-           #         cur_box_preds = box_preds[cur_start_idx: cur_start_idx + cur_cls_preds.shape[0]]
-           #         cur_pred_scores, cur_pred_labels, cur_pred_boxes = model_nms_utils.multi_classes_nms(
-           #             cls_scores=cur_cls_preds, box_preds=cur_box_preds,
-           #             nms_config=post_process_cfg.NMS_CONFIG,
-           #             score_thresh=post_process_cfg.SCORE_THRESH
-           #         )
-           #         cur_pred_labels = cur_label_mapping[cur_pred_labels]
-           #         pred_scores.append(cur_pred_scores)
-           #         pred_labels.append(cur_pred_labels)
-           #         pred_boxes.append(cur_pred_boxes)
-           #         cur_start_idx += cur_cls_preds.shape[0]
-
-           #     final_scores = torch.cat(pred_scores, dim=0)
-           #     final_labels = torch.cat(pred_labels, dim=0)
-           #     final_boxes = torch.cat(pred_boxes, dim=0)
-           # else:
-           #     cls_preds, label_preds = torch.max(cls_preds, dim=-1)
-           #     pdb.set_trace()
-           #     if batch_dict.get('has_class_labels', False):
-           #         label_key = 'roi_labels' if 'roi_labels' in batch_dict else 'batch_pred_labels'
-           #         label_preds = batch_dict[label_key][index]
-           #     else:
-           #         label_preds = label_preds + 1
-           #     selected, selected_scores = model_nms_utils.class_agnostic_nms(
-           #         box_scores=cls_preds, box_preds=box_preds,
-           #         nms_config=post_process_cfg.NMS_CONFIG,
-           #         score_thresh=post_process_cfg.SCORE_THRESH
-           #     )
-
-           #     if post_process_cfg.OUTPUT_RAW_SCORE:
-           #         max_cls_preds, _ = torch.max(src_cls_preds, dim=-1)
-           #         selected_scores = max_cls_preds[selected]
-
-           #     pdb.set_trace()
-           #     final_scores = selected_scores
-           #     final_labels = label_preds[selected]
-           #     final_boxes = box_preds[selected]
             final_boxes = box_preds
             final_scores = scores
             final_labels = cls_preds.int()
