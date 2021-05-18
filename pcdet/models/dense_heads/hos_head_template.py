@@ -176,7 +176,7 @@ class HOSHeadTemplate(nn.Module):
         tb_dict['rpn_loss'] = loss
         return loss, tb_dict
 
-    def generate_predicted_boxes(self, gt_boxes, batch_size, cls_preds, box_preds):
+    def generate_predicted_boxes(self, batch_size, cls_preds, box_preds):
         """
         Args:
             batch_size: N
